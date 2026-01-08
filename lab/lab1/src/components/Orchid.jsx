@@ -1,10 +1,12 @@
+// src/components/Orchid.jsx
 import { useState } from "react";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
+// 1. Import component vừa tạo
+import ConfirmModal from "./ConfirmModal";
 
 function Orchid({ orchidList }) {
   const [show, setShow] = useState(false);
@@ -15,6 +17,11 @@ function Orchid({ orchidList }) {
   const handleShow = (orchid) => {
     setSelectedOrchid(orchid);
     setShow(true);
+  };
+
+  const handleConfirm = () => {
+    console.log("Đã xác nhận: ", selectedOrchid?.orchidName);
+    setShow(false);
   };
 
   return (
@@ -61,40 +68,33 @@ function Orchid({ orchidList }) {
           ))}
         </Row>
 
-        <Modal show={show} onHide={handleClose} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>{selectedOrchid?.orchidName}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {selectedOrchid && (
+        {selectedOrchid && (
+          <ConfirmModal
+            show={show}
+            handleClose={handleClose}
+            title={selectedOrchid.orchidName}
+            onConfirm={handleConfirm}
+            body={
               <div>
                 <img
                   src={selectedOrchid.image}
                   alt={selectedOrchid.orchidName}
-                  style={{
-                    width: "100%",
-                    borderRadius: "5px",
-                    marginBottom: "15px",
-                  }}
+                  className="img-fluid mb-3 rounded"
+                  style={{ width: "100%" }}
                 />
                 <p>
-                  <strong>Category:</strong> {selectedOrchid.category}
+                  <strong>Description:</strong> {selectedOrchid.description}
                 </p>
                 <p>
-                  <strong>Description:</strong> {selectedOrchid.description}
+                  <strong>Category:</strong> {selectedOrchid.category}
                 </p>
                 {selectedOrchid.isSpecial && (
                   <p className="text-danger fw-bold">★ Special Item</p>
                 )}
               </div>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleClose}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+            }
+          />
+        )}
       </Container>
     </div>
   );
