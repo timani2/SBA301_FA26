@@ -1,3 +1,4 @@
+// src/App.jsx
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -6,6 +7,7 @@ import Footer from "./components/Footer";
 import Orchid from "./components/Orchid";
 import About from "./components/About";
 import Contact from "./components/Contact";
+import OrchidDetail from "./components/OrchidDetail"; // <--- Import file mới
 import { OrchidsData } from "./data/ListOfOrchidss";
 import TestCount from "./components/TestCount";
 
@@ -20,6 +22,8 @@ function App() {
             <Route path="/" element={<Orchid orchidList={OrchidsData} />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            {/* Thêm Route chi tiết */}
+            <Route path="/detail/:id" element={<OrchidDetail />} />
           </Routes>
 
           <div className="text-center my-3">

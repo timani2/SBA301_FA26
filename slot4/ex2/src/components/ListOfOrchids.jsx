@@ -1,33 +1,32 @@
+// src/components/ListOfOrchids.jsx
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom"; // <--- Import Link
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Card from "react-bootstrap/Card";
-import Button from "react-bootstrap/Button";
+import Button from "react-bootstrap/Button"; // Có thể bỏ nếu dùng Link thuần
 import FilterSort from "./FilterSort";
 
-function ListOfOrchids({ orchidList, onShowModal }) {
+function ListOfOrchids({ orchidList }) {
+  // Bỏ props onShowModal nếu không dùng Modal nữa
   const [searchParams] = useSearchParams();
   const searchText = searchParams.get("q") || "";
-
   const [filterCategory, setFilterCategory] = useState("");
   const [sortType, setSortType] = useState("");
 
   const getProcessedList = () => {
+    // ... (Giữ nguyên logic filter/sort của bạn) ...
     let processed = [...orchidList];
-
     if (searchText) {
       processed = processed.filter((orchid) =>
         orchid.orchidName.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-
     if (filterCategory) {
       processed = processed.filter(
         (orchid) => orchid.category === filterCategory
       );
     }
-
     if (sortType) {
       processed.sort((a, b) => {
         switch (sortType) {
@@ -59,7 +58,6 @@ function ListOfOrchids({ orchidList, onShowModal }) {
       />
 
       <Row>
-        {/* KIỂM TRA: Nếu có dữ liệu thì map, nếu không thì hiện thông báo */}
         {displayedOrchids.length > 0 ? (
           displayedOrchids.map((orchid) => (
             <Col md={3} key={orchid.id} className="mb-4 d-flex">
@@ -73,24 +71,23 @@ function ListOfOrchids({ orchidList, onShowModal }) {
                   <Card.Title>{orchid.orchidName}</Card.Title>
                   <span className="text-danger fw-bold">${orchid.price}</span>
                   <div className="d-grid mt-3">
-                    <Button
-                      variant="primary"
-                      onClick={() => onShowModal(orchid)}
+                    {/* Sử dụng Link để chuyển sang trang detail */}
+                    <Link
+                      to={`/detail/${orchid.id}`}
+                      className="btn btn-primary"
                     >
                       Detail
-                    </Button>
+                    </Link>
                   </div>
                 </Card.Body>
               </Card>
             </Col>
           ))
         ) : (
-          /* THÔNG BÁO KHI KHÔNG CÓ KẾT QUẢ */
           <Col xs={12} className="text-center mt-5">
             <h5 className="text-muted">
               Không tìm thấy kết quả nào phù hợp 😞
             </h5>
-            <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc của bạn.</p>
           </Col>
         )}
       </Row>
