@@ -2,28 +2,22 @@ import { useState } from "react";
 import Container from "react-bootstrap/Container";
 import ConfirmModal from "./ConfirmModal";
 import ListOfOrchids from "./ListOfOrchids";
-
 function Orchid({ orchidList }) {
   const [show, setShow] = useState(false);
   const [selectedOrchid, setSelectedOrchid] = useState(null);
-
   const handleClose = () => setShow(false);
-
   const handleShow = (orchid) => {
     setSelectedOrchid(orchid);
     setShow(true);
   };
-
   const handleConfirm = () => {
     console.log("Đã xác nhận: ", selectedOrchid?.orchidName);
     setShow(false);
   };
-
   return (
     <div>
       <Container className="py-5">
         <ListOfOrchids orchidList={orchidList} onShowModal={handleShow} />
-
         {selectedOrchid && (
           <ConfirmModal
             show={show}

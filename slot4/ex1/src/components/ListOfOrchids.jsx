@@ -9,25 +9,21 @@ import FilterSort from "./FilterSort";
 function ListOfOrchids({ orchidList, onShowModal }) {
   const [searchParams] = useSearchParams();
   const searchText = searchParams.get("q") || "";
-
   const [filterCategory, setFilterCategory] = useState("");
   const [sortType, setSortType] = useState("");
 
   const getProcessedList = () => {
     let processed = [...orchidList];
-
     if (searchText) {
       processed = processed.filter((orchid) =>
         orchid.orchidName.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-
     if (filterCategory) {
       processed = processed.filter(
         (orchid) => orchid.category === filterCategory
       );
     }
-
     if (sortType) {
       processed.sort((a, b) => {
         switch (sortType) {

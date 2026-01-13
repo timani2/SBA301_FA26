@@ -1,11 +1,11 @@
 import React from "react";
 import { Form, InputGroup } from "react-bootstrap";
 
-const SearchBar = ({ searchText, handleSearch }) => {
+const SearchBar = ({ searchText, handleSearch, className }) => {
   return (
-    <div className="mb-3 w-50 mx-auto">
+    // Nhận thêm props className từ cha để cha tự chỉnh layout
+    <div className={className}>
       <InputGroup>
-        <InputGroup.Text id="search-icon"></InputGroup.Text>
         <Form.Control
           type="text"
           placeholder="Tìm kiếm tên hoa lan..."
