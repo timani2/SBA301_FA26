@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom"; // <--- Import cái này
+import { useSearchParams } from "react-router-dom";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import FilterSort from "./FilterSort";
 
-// Xóa prop searchText đi, không cần nhận từ cha nữa
 function ListOfOrchids({ orchidList, onShowModal }) {
-  // 1. Lấy từ khóa search từ URL xuống
   const [searchParams] = useSearchParams();
-  const searchText = searchParams.get("q") || ""; // Nếu ko có thì là chuỗi rỗng
+  const searchText = searchParams.get("q") || "";
 
   const [filterCategory, setFilterCategory] = useState("");
   const [sortType, setSortType] = useState("");
@@ -18,7 +16,6 @@ function ListOfOrchids({ orchidList, onShowModal }) {
   const getProcessedList = () => {
     let processed = [...orchidList];
 
-    // 2. Logic lọc theo searchText (Lấy từ URL)
     if (searchText) {
       processed = processed.filter((orchid) =>
         orchid.orchidName.toLowerCase().includes(searchText.toLowerCase())
@@ -32,7 +29,6 @@ function ListOfOrchids({ orchidList, onShowModal }) {
     }
 
     if (sortType) {
-      // ... (Logic sort giữ nguyên)
       processed.sort((a, b) => {
         switch (sortType) {
           case "name-asc":
@@ -56,7 +52,6 @@ function ListOfOrchids({ orchidList, onShowModal }) {
 
   return (
     <>
-      {/* SearchBar đã nằm ở Header nên xóa ở đây nếu có */}
       <FilterSort
         categories={categories}
         onFilterChange={setFilterCategory}
@@ -64,25 +59,40 @@ function ListOfOrchids({ orchidList, onShowModal }) {
       />
 
       <Row>
-        {/* ... (Phần hiển thị danh sách giữ nguyên y hệt cũ) */}
-        {displayedOrchids.map((orchid) => (
-          <Col md={3} key={orchid.id} className="mb-4 d-flex">
-            {/* ... Nội dung Card ... */}
-            <Card className="h-100 w-100 position-relative shadow-sm">
-              {/* ... code hiển thị giữ nguyên ... */}
-              <Card.Img
-                variant="top"
-                src={orchid.image}
-                style={{ height: "250px", objectFit: "cover" }}
-              />
-              <Card.Body>
-                <Card.Title>{orchid.orchidName}</Card.Title>
-                {/* ... */}
-                <Button onClick={() => onShowModal(orchid)}>Detail</Button>
-              </Card.Body>
-            </Card>
+        {/* KIỂM TRA: Nếu có dữ liệu thì map, nếu không thì hiện thông báo */}
+        {displayedOrchids.length > 0 ? (
+          displayedOrchids.map((orchid) => (
+            <Col md={3} key={orchid.id} className="mb-4 d-flex">
+              <Card className="h-100 w-100 position-relative shadow-sm">
+                <Card.Img
+                  variant="top"
+                  src={orchid.image}
+                  style={{ height: "250px", objectFit: "cover" }}
+                />
+                <Card.Body>
+                  <Card.Title>{orchid.orchidName}</Card.Title>
+                  <span className="text-danger fw-bold">${orchid.price}</span>
+                  <div className="d-grid mt-3">
+                    <Button
+                      variant="primary"
+                      onClick={() => onShowModal(orchid)}
+                    >
+                      Detail
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))
+        ) : (
+          /* THÔNG BÁO KHI KHÔNG CÓ KẾT QUẢ */
+          <Col xs={12} className="text-center mt-5">
+            <h5 className="text-muted">
+              Không tìm thấy kết quả nào phù hợp 😞
+            </h5>
+            <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc của bạn.</p>
           </Col>
-        ))}
+        )}
       </Row>
     </>
   );
