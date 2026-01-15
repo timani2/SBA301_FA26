@@ -34,7 +34,7 @@ function Header() {
 
   return (
     <>
-      {location.pathname === "/" && <CarouselBanner />}
+      <CarouselBanner />
       <Navbar bg="dark" data-bs-theme="dark" expand="lg">
         <Container>
           <Navbar.Brand as={Link} to="/">
