@@ -22,11 +22,11 @@ function App() {
             {/* CODE CŨ: <Route index element={<Orchid orchidList={OrchidsData} />} /> */}
             {/* CODE MỚI: Không cần truyền prop orchidList nữa vì Orchid tự gọi API */}
             <Route index element={<Orchid />} />
-
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
             <Route path="detail/:id" element={<OrchidDetail />} />
-            <Route path="manage" element={<ManageOrchid />} />
+            {/* them trang quan ly orchid cho admin */}
+            <Route path="manage" element={<ManageOrchid />} />{" "}
           </Route>
         </Routes>
       </Router>

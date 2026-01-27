@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-bootstrap";
 // import { OrchidsData } from "../data/ListOfOrchidss";
-import { fetchOrchidById } from "../service/OrchidService"; // <-- CODE MỚI: Import API
+import { fetchOrchidById } from "../service/OrchidService";
 
 const OrchidDetail = () => {
   const { id } = useParams();
@@ -23,10 +23,10 @@ const OrchidDetail = () => {
   const [error, setError] = useState(null);
   // ----------------------
 
-  // CODE CŨ: Tìm orchid theo id từ file tĩnh
+  // Tìm orchid theo id từ file tĩnh
   // const orchid = OrchidsData.find((o) => o.id === id);
 
-  // --- CODE MỚI: Gọi API lấy chi tiết ---
+  // --- Gọi API lấy chi tiết ---
   useEffect(() => {
     const loadDetail = async () => {
       try {
@@ -44,7 +44,7 @@ const OrchidDetail = () => {
   }, [id]);
   // --------------------------------------
 
-  // --- CODE MỚI: UI Loading ---
+  // ---  UI Loading ---
   if (loading) {
     return (
       <Container className="text-center mt-5">
@@ -54,14 +54,12 @@ const OrchidDetail = () => {
   }
   // ----------------------------
 
-  // if (!orchid) { // <-- CODE CŨ
+  // if (!orchid) { // <-- CODE truoc khi lay du lieu tu API
   if (error || !orchid) {
-    // <-- CODE MỚI
     return (
       <Container className="text-center mt-5">
-        {/* <h2>Không tìm thấy sản phẩm!</h2> <-- CODE CŨ */}
+        {/* <h2>Không tìm thấy sản phẩm!</h2> code truoc khi lay du lieu tu API*/}
         <Alert variant="danger">{error || "Sản phẩm không tồn tại"}</Alert>{" "}
-        {/* <-- CODE MỚI */}
         <Button variant="secondary" onClick={() => navigate("/")}>
           Trở về trang chủ
         </Button>
