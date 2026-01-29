@@ -1,126 +1,77 @@
-import { useState, useMemo, useEffect } from "react"; // Thêm useEffect
+// src/page/Orchid.jsx
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import Container from "react-bootstrap/Container";
+import { Container, Spinner, Alert } from "react-bootstrap";
 import ListOfOrchids from "../components/ListOfOrchids";
 import FilterSort from "../components/FilterSort";
-import Spinner from "react-bootstrap/Spinner"; // UI loading
-import Alert from "react-bootstrap/Alert"; //  UI lỗi
-import { fetchOrchids } from "../service/OrchidService";
+import CarouselBanner from "../components/CarouselBanner";
+import { OrchidService } from "../service/OrchidService";
 
-// function Orchid({ orchidList }) { //  Nhận props
 function Orchid() {
-  // Không nhận props
-
-  // State quản lý dữ liệu API ---
   const [orchidList, setOrchidList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // -------------------------------------------
-
   const [filterCategory, setFilterCategory] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
 
-  // --- CODE MỚI: Gọi API ---
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const data = await fetchOrchids();
+        const data = await OrchidService.getAllOrchids();
         setOrchidList(data);
       } catch (err) {
-        setError("Không thể tải dữ liệu từ máy chủ.");
-        console.error(err);
+        setError("Lỗi kết nối backend Spring Boot.");
       } finally {
         setLoading(false);
       }
     };
     loadData();
   }, []);
-  // ------------------------
-
-  const handleFilterChange = (category) => {
-    setFilterCategory(category);
-  };
-
-  const handleSortChange = (sort) => {
-    setSortOption(sort);
-  };
 
   const categories = useMemo(() => {
-    // if (!orchidList) return []; // <-- CODE CŨ (Implicit check trong logic cũ)
-    if (!orchidList.length) return []; //  Kiểm tra length
-
-    const uniqueCategories = [
-      ...new Set(orchidList.map((orchid) => orchid.category)),
+    const unique = [
+      ...new Set(orchidList.map((o) => o.orchidCategory?.categoryName)),
     ];
-    return uniqueCategories;
+    return unique.filter(Boolean);
   }, [orchidList]);
 
-  const filteredAndSortedOrchids = useMemo(() => {
-    if (!orchidList.length) return []; // Safety check
-
-    let filtered = orchidList.filter((orchid) => {
-      const matchesCategory =
-        !filterCategory || orchid.category === filterCategory;
+  const filteredOrchids = useMemo(() => {
+    let result = orchidList.filter((o) => {
+      const matchesCat =
+        !filterCategory || o.orchidCategory?.categoryName === filterCategory;
       const matchesSearch =
         !searchTerm ||
-        orchid.orchidName.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
+        o.orchidName.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCat && matchesSearch;
     });
-
-    if (sortOption) {
-      filtered.sort((a, b) => {
-        switch (sortOption) {
-          case "price-asc":
-            return a.price - b.price;
-          case "price-desc":
-            return b.price - a.price;
-          case "name-asc":
-            return a.orchidName.localeCompare(b.orchidName);
-          case "name-desc":
-            return b.orchidName.localeCompare(a.orchidName);
-          default:
-            return 0;
-        }
-      });
-    }
-
-    return filtered;
+    if (sortOption === "name-asc")
+      result.sort((a, b) => a.orchidName.localeCompare(b.orchidName));
+    return result;
   }, [orchidList, filterCategory, sortOption, searchTerm]);
 
-  // ---  Xử lý hiển thị Loading/Error ---
-  if (loading) {
+  if (loading)
     return (
-      <Container className="py-5 text-center">
-        <Spinner animation="border" variant="primary" />
-        <p>Đang tải dữ liệu...</p>
+      <Container className="text-center py-5">
+        <Spinner animation="border" />
       </Container>
     );
-  }
-
-  if (error) {
-    return (
-      <Container className="py-5">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
-  }
-  // ----------------------------------------------
 
   return (
     <div>
-      <Container className="py-5">
+      <Container className="py-4">
         <FilterSort
           categories={categories}
-          onFilterChange={handleFilterChange}
-          onSortChange={handleSortChange}
+          onFilterChange={setFilterCategory}
+          onSortChange={setSortOption}
         />
-        {filteredAndSortedOrchids.length > 0 ? (
-          <ListOfOrchids orchidList={filteredAndSortedOrchids} />
+        <hr />
+        {filteredOrchids.length > 0 ? (
+          <ListOfOrchids orchidList={filteredOrchids} />
         ) : (
-          <p className="text-center">Không tìm thấy kết quả nào phù hợp.</p>
+          <p className="text-center mt-4">Không tìm thấy sản phẩm nào.</p>
         )}
       </Container>
     </div>

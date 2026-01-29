@@ -1,21 +1,22 @@
 import axios from "axios";
 
-// URL của Spring Boot Server
-const API_URL = "http://localhost:8080/orchids/";
-const CATEGORY_URL = "http://localhost:8080/categories/";
+const API_URL = "http://localhost:8080/orchids";
+const CATEGORY_URL = "http://localhost:8080/categories";
 
 export const OrchidService = {
   getAllOrchids: async () => {
-    return await axios.get(API_URL);
+    const response = await axios.get(API_URL);
+    return response.data;
   },
 
-  // Lấy danh sách danh mục để đổ vào dropdown
   getAllCategories: async () => {
-    return await axios.get(CATEGORY_URL);
+    const response = await axios.get(CATEGORY_URL);
+    return response.data;
   },
 
   getOrchidById: async (id) => {
-    return await axios.get(`${API_URL}${id}`);
+    const response = await axios.get(`${API_URL}/${id}`);
+    return response.data;
   },
 
   createOrchid: async (orchid) => {
@@ -23,10 +24,14 @@ export const OrchidService = {
   },
 
   updateOrchid: async (id, orchid) => {
-    return await axios.put(`${API_URL}${id}`, orchid);
+    return await axios.put(`${API_URL}/${id}`, orchid);
   },
 
   deleteOrchid: async (id) => {
-    return await axios.delete(`${API_URL}${id}`);
+    return await axios.delete(`${API_URL}/${id}`);
   },
 };
+
+// Export thêm để tương thích với các code cũ
+export const fetchOrchids = OrchidService.getAllOrchids;
+export const fetchOrchidById = OrchidService.getOrchidById;

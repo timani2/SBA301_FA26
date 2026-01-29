@@ -32,8 +32,8 @@ public class OrchidService implements IOrchidService {
             o.setOrchidDescription(orchid.getOrchidDescription());
             o.setOrchidCategory(orchid.getOrchidCategory());
             o.setOrchidURL(orchid.getOrchidURL());
-            o.setNatural(orchid.isNatural());
-            o.setAttractive(orchid.isAttractive());
+            o.setIsNatural(orchid.getIsNatural());
+            o.setIsAttractive(orchid.getIsAttractive());
             return orchidRepository.save(o);
         }
         return null;

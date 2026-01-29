@@ -1,106 +1,171 @@
-// src/page/ManageOrchid.jsx
 import React, { useEffect, useState } from "react";
-import { Table, Button, Container, Modal, Form, Image } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+// Thêm Row và Col vào danh sách import từ react-bootstrap
+import {
+  Table,
+  Button,
+  Container,
+  Modal,
+  Form,
+  Image,
+  Badge,
+  Row,
+  Col,
+} from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
-import useManageOrchids from "../hooks/useManageOrchids";
 import { OrchidService } from "../service/OrchidService";
 
 const ManageOrchid = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  // State bổ sung để quản lý danh sách Category từ Server
+  const [orchids, setOrchids] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
-  // Redirect nếu chưa đăng nhập
+  const [currentOrchid, setCurrentOrchid] = useState({
+    orchidName: "",
+    orchidURL: "",
+    orchidDescription: "",
+    price: 0,
+    isNatural: false,
+    isAttractive: false,
+    orchidCategory: { categoryID: "" },
+  });
+
+  const loadData = async () => {
+    try {
+      const [orchRes, catRes] = await Promise.all([
+        OrchidService.getAllOrchids(),
+        OrchidService.getAllCategories(),
+      ]);
+      setOrchids(orchRes);
+      setCategories(catRes);
+    } catch (e) {
+      toast.error("Lỗi tải dữ liệu từ server!");
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     } else {
-      // Lấy danh sách category khi component mount
-      const fetchCats = async () => {
-        try {
-          const res = await OrchidService.getAllCategories();
-          setCategories(res.data);
-        } catch (error) {
-          console.error("Error fetching categories:", error);
-        }
-      };
-      fetchCats();
+      loadData();
     }
   }, [isAuthenticated, navigate]);
 
-  // SỬ DỤNG HOOK: Lấy dữ liệu và các hàm xử lý
-  const { state, ui, handlers } = useManageOrchids(isAuthenticated);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentOrchid.orchidCategory.categoryID) {
+      toast.warning("Vui lòng chọn danh mục cho hoa lan!");
+      return;
+    }
+    try {
+      if (currentOrchid.orchidID) {
+        await OrchidService.updateOrchid(currentOrchid.orchidID, currentOrchid);
+        toast.success("Cập nhật thông tin hoa thành công!");
+      } else {
+        await OrchidService.createOrchid(currentOrchid);
+        toast.success("Thêm mới hoa lan thành công!");
+      }
+      setShowModal(false);
+      loadData();
+    } catch (e) {
+      toast.error("Thao tác thất bại. Vui lòng kiểm tra lại!");
+    }
+  };
 
-  if (!isAuthenticated) return null;
+  const handleDelete = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa hoa lan này không?")) {
+      try {
+        await OrchidService.deleteOrchid(id);
+        toast.success("Đã xóa hoa lan thành công!");
+        loadData();
+      } catch (e) {
+        toast.error("Không thể xóa sản phẩm này!");
+      }
+    }
+  };
 
   return (
     <Container className="mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Orchids</h2>
-        <Button variant="primary" onClick={handlers.openAddModal}>
-          + Add New Orchid
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Hệ thống quản lý hoa Lan</h2>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setCurrentOrchid({
+              orchidName: "",
+              orchidURL: "",
+              orchidDescription: "",
+              price: 0,
+              isNatural: false,
+              isAttractive: false,
+              orchidCategory: { categoryID: "" },
+            });
+            setShowModal(true);
+          }}
+        >
+          + Thêm hoa mới
         </Button>
       </div>
 
-      <Table striped bordered hover responsive>
-        <thead>
+      <Table striped bordered hover responsive className="shadow-sm">
+        <thead className="table-dark text-center">
           <tr>
             <th>ID</th>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Natural</th>
-            <th>Special (Attractive)</th>
-            <th>Actions</th>
+            <th>Ảnh</th>
+            <th>Tên hoa</th>
+            <th>Giá ($)</th>
+            <th>Danh mục</th>
+            <th>Tự nhiên</th>
+            <th>Đặc biệt</th>
+            <th>Thao tác</th>
           </tr>
         </thead>
-        <tbody>
-          {/* Sửa các trường dữ liệu theo Entity Spring Boot: orchidID, orchidURL, orchidCategory */}
-          {state.orchids.map((orchid) => (
-            <tr key={orchid.orchidID}>
-              <td>{orchid.orchidID}</td>
+        <tbody className="align-middle text-center">
+          {orchids.map((o) => (
+            <tr key={o.orchidID}>
+              <td>{o.orchidID}</td>
               <td>
                 <Image
-                  src={orchid.orchidURL}
-                  alt={orchid.orchidName}
-                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
-                  rounded
+                  src={o.orchidURL}
+                  width="60"
+                  height="60"
+                  style={{ objectFit: "cover" }}
+                  thumbnail
+                  alt={o.orchidName}
                 />
               </td>
+              <td className="fw-bold">{o.orchidName}</td>
+              <td className="text-danger fw-bold">${o.price}</td>
+              <td>{o.orchidCategory?.categoryName || "N/A"}</td>
+              <td>{o.isNatural ? "✅" : "❌"}</td>
               <td>
-                <Link
-                  to={`/detail/${orchid.orchidID}`}
-                  style={{ textDecoration: "none", fontWeight: "bold" }}
-                >
-                  {orchid.orchidName}
-                </Link>
-              </td>
-              {/* Hiển thị tên từ object Category */}
-              <td>{orchid.orchidCategory?.categoryName || "N/A"}</td>
-              <td>{orchid.isNatural ? "Yes" : "No"}</td>
-              <td>
-                {orchid.isAttractive ? (
-                  <span className="badge bg-success">Yes</span>
+                {o.isAttractive ? (
+                  <Badge bg="warning" text="dark">
+                    Hot
+                  </Badge>
                 ) : (
-                  <span className="badge bg-secondary">No</span>
+                  <Badge bg="secondary">Thường</Badge>
                 )}
               </td>
               <td>
                 <Button
-                  variant="warning"
+                  variant="outline-warning"
                   size="sm"
                   className="me-2"
-                  onClick={() => handlers.openEditModal(orchid)}
+                  onClick={() => {
+                    setCurrentOrchid(o);
+                    setShowModal(true);
+                  }}
                 >
                   Edit
                 </Button>
                 <Button
-                  variant="danger"
+                  variant="outline-danger"
                   size="sm"
-                  onClick={() => handlers.openConfirmDelete(orchid.orchidID)}
+                  onClick={() => handleDelete(o.orchidID)}
                 >
                   Delete
                 </Button>
@@ -110,118 +175,123 @@ const ManageOrchid = () => {
         </tbody>
       </Table>
 
-      {/* Modal Form Thêm/Sửa */}
-      <Modal show={ui.showModal} onHide={handlers.closeModal}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            {ui.modalType === "add" ? "Add New Orchid" : "Edit Orchid"}
+            {currentOrchid.orchidID ? "Cập nhật thông tin hoa" : "Thêm hoa mới"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handlers.handleSubmit}>
+          <Form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Tên hoa</Form.Label>
+                  <Form.Control
+                    required
+                    value={currentOrchid.orchidName}
+                    onChange={(e) =>
+                      setCurrentOrchid({
+                        ...currentOrchid,
+                        orchidName: e.target.value,
+                      })
+                    }
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Giá bán ($)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    required
+                    value={currentOrchid.price}
+                    onChange={(e) =>
+                      setCurrentOrchid({
+                        ...currentOrchid,
+                        price: e.target.value,
+                      })
+                    }
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
             <Form.Group className="mb-3">
-              <Form.Label>Orchid Name</Form.Label>
+              <Form.Label>Link ảnh (URL)</Form.Label>
               <Form.Control
-                type="text"
-                name="orchidName"
-                value={state.currentOrchid.orchidName || ""}
-                onChange={handlers.handleInputChange}
                 required
+                value={currentOrchid.orchidURL}
+                onChange={(e) =>
+                  setCurrentOrchid({
+                    ...currentOrchid,
+                    orchidURL: e.target.value,
+                  })
+                }
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
-              <Form.Label>Image URL</Form.Label>
-              <Form.Control
-                type="text"
-                name="orchidURL"
-                value={state.currentOrchid.orchidURL || ""}
-                onChange={handlers.handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
+              <Form.Label>Danh mục</Form.Label>
               <Form.Select
-                name="orchidCategory"
-                // Gắn value với ID của object orchidCategory
-                value={state.currentOrchid.orchidCategory?.categoryID || ""}
-                onChange={(e) => {
-                  // Cần xử lý riêng cho object categoryID
-                  const catId = e.target.value;
-                  handlers.handleInputChange({
-                    target: {
-                      name: "orchidCategory",
-                      value: catId,
-                    },
-                  });
-                }}
                 required
+                value={currentOrchid.orchidCategory?.categoryID || ""}
+                onChange={(e) =>
+                  setCurrentOrchid({
+                    ...currentOrchid,
+                    orchidCategory: { categoryID: e.target.value },
+                  })
+                }
               >
-                <option value="">Select Category</option>
-                {/* Lấy danh sách category động từ Server */}
-                {categories.map((cat) => (
-                  <option key={cat.categoryID} value={cat.categoryID}>
-                    {cat.categoryName}
+                <option value="">Chọn danh mục...</option>
+                {categories.map((c) => (
+                  <option key={c.categoryID} value={c.categoryID}>
+                    {c.categoryName}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
-
+            <div className="d-flex gap-4 mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Môi trường tự nhiên"
+                checked={currentOrchid.isNatural}
+                onChange={(e) =>
+                  setCurrentOrchid({
+                    ...currentOrchid,
+                    isNatural: e.target.checked,
+                  })
+                }
+              />
+              <Form.Check
+                type="checkbox"
+                label="Sản phẩm đặc biệt (Hot/Attractive)"
+                checked={currentOrchid.isAttractive}
+                onChange={(e) =>
+                  setCurrentOrchid({
+                    ...currentOrchid,
+                    isAttractive: e.target.checked,
+                  })
+                }
+              />
+            </div>
             <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
+              <Form.Label>Mô tả sản phẩm</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={3}
-                name="orchidDescription"
-                value={state.currentOrchid.orchidDescription || ""}
-                onChange={handlers.handleInputChange}
-                required
+                rows={4}
+                value={currentOrchid.orchidDescription}
+                onChange={(e) =>
+                  setCurrentOrchid({
+                    ...currentOrchid,
+                    orchidDescription: e.target.value,
+                  })
+                }
               />
             </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Is Natural?"
-                name="isNatural"
-                checked={state.currentOrchid.isNatural || false}
-                onChange={handlers.handleInputChange}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Is Attractive (Special)?"
-                name="isAttractive"
-                checked={state.currentOrchid.isAttractive || false}
-                onChange={handlers.handleInputChange}
-              />
-            </Form.Group>
-
-            <Button variant="primary" type="submit" className="w-100">
-              {ui.modalType === "add" ? "Create" : "Update"}
+            <Button type="submit" className="w-100" variant="success">
+              {currentOrchid.orchidID ? "Lưu thay đổi" : "Tạo mới ngay"}
             </Button>
           </Form>
         </Modal.Body>
-      </Modal>
-
-      {/* Modal Xác nhận Xóa */}
-      <Modal show={ui.showConfirmModal} onHide={handlers.closeConfirmDelete}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to delete this orchid?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handlers.closeConfirmDelete}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handlers.handleConfirmDelete}>
-            Delete
-          </Button>
-        </Modal.Footer>
       </Modal>
     </Container>
   );

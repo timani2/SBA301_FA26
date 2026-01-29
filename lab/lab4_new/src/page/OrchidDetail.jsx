@@ -1,5 +1,5 @@
-// src/components/OrchidDetail.jsx
-import React, { useState, useEffect } from "react"; // <-- CODE MỚI: Thêm useState, useEffect
+// src/page/OrchidDetail.jsx
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -9,123 +9,113 @@ import {
   Col,
   Spinner,
   Alert,
+  Badge,
 } from "react-bootstrap";
-// import { OrchidsData } from "../data/ListOfOrchidss";
-import { fetchOrchidById } from "../service/OrchidService";
+import { OrchidService } from "../service/OrchidService";
 
 const OrchidDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // --- CODE MỚI: State ---
   const [orchid, setOrchid] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  // ----------------------
 
-  // Tìm orchid theo id từ file tĩnh
-  // const orchid = OrchidsData.find((o) => o.id === id);
-
-  // --- Gọi API lấy chi tiết ---
   useEffect(() => {
     const loadDetail = async () => {
       try {
-        setLoading(true);
-        const data = await fetchOrchidById(id);
+        const data = await OrchidService.getOrchidById(id);
         setOrchid(data);
       } catch (err) {
-        setError("Không tìm thấy sản phẩm hoặc lỗi kết nối.");
-        console.error(err);
+        console.error("Lỗi:", err);
       } finally {
         setLoading(false);
       }
     };
     loadDetail();
   }, [id]);
-  // --------------------------------------
 
-  // ---  UI Loading ---
-  if (loading) {
+  if (loading)
     return (
       <Container className="text-center mt-5">
-        <Spinner animation="border" variant="primary" />
+        <Spinner animation="border" />
       </Container>
     );
-  }
-  // ----------------------------
-
-  // if (!orchid) { // <-- CODE truoc khi lay du lieu tu API
-  if (error || !orchid) {
+  if (!orchid)
     return (
-      <Container className="text-center mt-5">
-        {/* <h2>Không tìm thấy sản phẩm!</h2> code truoc khi lay du lieu tu API*/}
-        <Alert variant="danger">{error || "Sản phẩm không tồn tại"}</Alert>{" "}
-        <Button variant="secondary" onClick={() => navigate("/")}>
-          Trở về trang chủ
-        </Button>
+      <Container className="mt-5">
+        <Alert variant="danger">Không tìm thấy sản phẩm!</Alert>
       </Container>
     );
-  }
 
   return (
     <Container className="mt-5 mb-5">
-      <Row className="justify-content-center">
-        <Col md={8}>
-          <div className="mb-3 text-start">
-            <Button variant="dark" onClick={() => navigate(-1)}>
-              &larr; Back
-            </Button>
-          </div>
-
-          <Card className="shadow">
-            <Card.Body>
-              <Row>
-                <Col md={6}>
-                  <Card.Img
-                    src={orchid.image}
-                    alt={orchid.orchidName}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "400px",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Col>
-                <Col md={6}>
-                  <Card.Title className="display-5 text-primary">
-                    {orchid.orchidName}
-                  </Card.Title>
-
-                  <Card.Text as="div">
-                    <p>
-                      <strong>Category:</strong> {orchid.category}
-                    </p>
-                    <p className="fs-4 text-danger fw-bold">
-                      Price: ${orchid.price}
-                    </p>
-                    {orchid.isSpecial && (
-                      <p className="badge bg-warning text-dark">
-                        ★ Special Item
-                      </p>
-                    )}
-                    <hr />
-                    <h5>Description</h5>
-                    <p>{orchid.description}</p>
-                  </Card.Text>
-                  <Button
-                    variant="success"
-                    size="lg"
-                    onClick={() => alert("Đã thêm vào giỏ hàng!")}
-                  >
-                    Add To Cart
-                  </Button>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      <Button
+        variant="outline-secondary"
+        className="mb-4"
+        onClick={() => navigate(-1)}
+      >
+        &larr; Quay lại
+      </Button>
+      <Card className="shadow-lg border-0 overflow-hidden">
+        <Card.Body className="p-0">
+          <Row className="g-0">
+            <Col md={6} className="position-relative">
+              <div
+                className="position-absolute"
+                style={{
+                  top: "20px",
+                  left: "20px",
+                  zIndex: 1,
+                  display: "flex",
+                  gap: "10px",
+                }}
+              >
+                {orchid.isAttractive && (
+                  <Badge bg="warning" text="dark" className="p-2 shadow">
+                    ✨ Đặc biệt
+                  </Badge>
+                )}
+                {orchid.isNatural && (
+                  <Badge bg="success" className="p-2 shadow">
+                    🌿 Tự nhiên
+                  </Badge>
+                )}
+              </div>
+              <Card.Img
+                src={orchid.orchidURL}
+                style={{
+                  height: "100%",
+                  objectFit: "cover",
+                  minHeight: "450px",
+                }}
+              />
+            </Col>
+            <Col md={6} className="p-5">
+              <h1 className="display-5 fw-bold text-primary">
+                {orchid.orchidName}
+              </h1>
+              <Badge bg="info" className="mb-3 fs-6">
+                {orchid.orchidCategory?.categoryName}
+              </Badge>
+              <h2 className="text-danger fw-bold mb-4">Giá: ${orchid.price}</h2>
+              <hr />
+              <h5 className="fw-bold">Mô tả sản phẩm:</h5>
+              <p
+                className="text-muted"
+                style={{ lineHeight: "1.8", whiteSpace: "pre-line" }}
+              >
+                {orchid.orchidDescription}
+              </p>
+              <Button
+                variant="success"
+                size="lg"
+                className="mt-4 px-5 fw-bold shadow"
+              >
+                Mua ngay
+              </Button>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

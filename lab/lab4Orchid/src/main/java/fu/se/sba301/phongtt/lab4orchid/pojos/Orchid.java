@@ -27,9 +27,6 @@ public class Orchid implements Serializable {
     @Column(name = "orchid_name", columnDefinition = "nvarchar(255)")
     private String orchidName;
 
-    @Column(name = "is_natural", columnDefinition = "bit default 0")
-    private boolean isNatural;
-
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price = BigDecimal.ZERO;
@@ -43,8 +40,12 @@ public class Orchid implements Serializable {
     @JoinColumn(name = "category_id")
     private Category orchidCategory;
 
+
+    @Column(name = "is_natural", columnDefinition = "bit default 0")
+    private Boolean isNatural;
+
     @Column(name = "is_attractive", columnDefinition = "bit default 0")
-    private boolean isAttractive;
+    private Boolean isAttractive;
 
     @Column(name = "orchid_url", columnDefinition = "nvarchar(max)")
     private String orchidURL;
