@@ -27,8 +27,9 @@ public class Orchid implements Serializable {
     @Column(name = "orchid_description", columnDefinition = "nvarchar(max)")
     private String orchidDescription;
 
-    @Column(name = "orchid_category", columnDefinition = "nvarchar(255)")
-    private String orchidCategory;
+    @ManyToOne
+    @JoinColumn(name = "category_id") // Khóa ngoại liên kết sang bảng category
+    private Category orchidCategory;
 
     @Column(name = "is_attractive", columnDefinition = "bit default 0")
     private boolean isAttractive;

@@ -1,26 +1,24 @@
 package fu.se.sba301.phongtt.lab4orchid.config;
 
-import org.apache.catalina.filters.CorsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig {
+
     @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowCredentials(false);
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Chỉ đích danh cổng React [cite: 149]
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Các hành động CRUD [cite: 120, 149]
-        config.setAllowedHeaders(List.of("*"));
-
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**") // Cho phép tất cả các đường dẫn API [cite: 50, 52]
+                        .allowedOrigins("http://localhost:5173") // URL mặc định của Vite
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Các phương thức CRUD [cite: 6, 81]
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
     }
 }

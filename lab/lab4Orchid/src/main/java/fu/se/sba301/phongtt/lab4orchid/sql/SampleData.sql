@@ -1,11 +1,20 @@
 
 USE Orchid;
 GO
+-- Dữ liệu cho Lan Hồ Điệp (Category 1)
+INSERT INTO orchid (orchid_name, is_natural, orchid_description, is_attractive, orchid_url, category_id)
+VALUES (N'Hồ Điệp Tím Đà Lạt', 0, N'Hoa có màu tím đậm, cánh dày, lâu tàn, phù hợp biếu tặng.', 1, 'https://example.com/tim-da-lat.jpg', 1);
 
-INSERT INTO orchid (orchid_name, is_natural, orchid_description, orchid_category, is_attractive, orchid_url)
-VALUES
-    (N'Phalaenopsis Amabilis', 1, N'Lan Hồ Điệp trắng, biểu tượng của sự sang trọng.', N'Phalaenopsis', 1, 'https://example.com/images/phalaenopsis_amabilis.jpg'),
-    (N'Cattleya Labiata', 1, N'Loài lan có hoa lớn, màu sắc rực rỡ và hương thơm nồng nàn.', N'Cattleya', 1, 'https://example.com/images/cattleya_labiata.jpg'),
-    (N'Dendrobium Nobile', 1, N'Lan Phi Điệp, một trong những loài lan phổ biến nhất thế giới.', N'Dendrobium', 1, 'https://example.com/images/dendrobium_nobile.jpg'),
-    (N'Vanda Coerulea', 1, N'Lan Vanda xanh, loài hiếm có với màu xanh lam đặc trưng.', N'Vanda', 1, 'https://example.com/images/vanda_coerulea.jpg'),
-    (N'Paphiopedilum Thủ Đức', 0, N'Lan Hài lai tạo, dễ chăm sóc trong điều kiện gia đình.', N'Paphiopedilum', 1, 'https://example.com/images/paphio_thuduc.jpg');
+-- Dữ liệu cho Lan Hoàng Thảo (Category 2)
+INSERT INTO orchid (orchid_name, is_natural, orchid_description, is_attractive, orchid_url, category_id)
+VALUES (N'Hoàng Thảo Kèn', 1, N'Loài lan rừng quý hiếm với hương thơm đặc trưng và sắc tím quyến rũ.', 1, 'https://example.com/hoang-thao-ken.jpg', 2);
+
+-- Dữ liệu cho Lan Kiếm (Category 3)
+INSERT INTO orchid (orchid_name, is_natural, orchid_description, is_attractive, orchid_url, category_id)
+VALUES (N'Kiếm Tiên Vũ', 1, N'Lá bản to, hoa mọc thành chùm dài màu vàng xanh.', 0, 'https://example.com/kiem-tien-vu.jpg', 3);
+
+
+INSERT INTO category (category_name) VALUES (N'Dendrobium');
+INSERT INTO category (category_name) VALUES (N'Phalaenopsis');
+INSERT INTO category (category_name) VALUES (N'Cattleya');
+INSERT INTO category (category_name) VALUES (N'Vanda');
