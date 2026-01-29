@@ -11,7 +11,7 @@ VALUES
         350000,
         N'Hoa có màu tím đậm, cánh dày, lâu tàn, phù hợp biếu tặng.',
         1,
-        'https://example.com/tim-da-lat.jpg',
+        'https://gcs.tripi.vn/public-tripi/tripi-feed/img/473672qrs/lan-ho-diep-581636.jpg',
         1
     );
 
@@ -24,7 +24,7 @@ VALUES
         1200000,
         N'Loài lan rừng quý hiếm với hương thơm đặc trưng và sắc tím quyến rũ.',
         1,
-        'https://example.com/hoang-thao-ken.jpg',
+        'https://cdn.baogialai.com.vn/images/5d93661b5836672daa8629aec90c6a0bf29981863b3d88bcfd583a2b12f4cdcf41f8da2f0c7e0fc4e23a539a1710ce3761a472d90163de8f00451a256d2a57bb/images2542587_h_1.jpg',
         2
     );
 
@@ -35,7 +35,7 @@ VALUES
         N'Kiếm Tiên Vũ',
         1,
         850000,
-        N'Lá bản to, hoa mọc thành chùm dài màu vàng xanh.',
+        N'https://xenangphuy.com/wp-content/uploads/lan-dep.jpg',
         0,
         'https://example.com/kiem-tien-vu.jpg',
         3
