@@ -11,6 +11,7 @@ import Login from "./pages/login/Login";
 import AccountManage from "./pages/admin/AccountManage";
 import CategoryManage from "./pages/staff/CategoryManage";
 import NewsManage from "./pages/staff/NewsManage";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // 1. Component bảo vệ đường dẫn (Private Route)
 const ProtectedRoute = ({ children, allowedRole }) => {

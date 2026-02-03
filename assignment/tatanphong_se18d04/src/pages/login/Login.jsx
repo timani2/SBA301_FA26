@@ -60,6 +60,11 @@ const Login = () => {
             <h2 className="fw-bold text-primary">FUNews Login</h2>
             <p className="text-muted">Đăng nhập để quản lý hệ thống tin tức</p>
           </div>
+          <Alert variant="info" className="small">
+            <strong>Sample Accounts:</strong> <br />- Admin:{" "}
+            <code>admin@funews.com.vn</code> | <code>admin123</code> <br />-
+            Staff: <code>staff01@funews.com.vn</code> | <code>staff123</code>
+          </Alert>
 
           {error && <Alert variant="danger">{error}</Alert>}
 
@@ -75,7 +80,6 @@ const Login = () => {
                 required
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Password</Form.Label>
               <Form.Control
@@ -87,7 +91,6 @@ const Login = () => {
                 required
               />
             </Form.Group>
-
             <Button
               variant="primary"
               type="submit"
