@@ -1,116 +1,152 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import API from "../../services/api";
 
-const NewsArticleModal = ({
-  show,
-  handleClose,
-  handleSave,
-  newsData,
-  categories,
-  allTags,
-}) => {
+const NewsArticleModal = ({ show, onHide, onSave, selectedNews }) => {
+  const [categories, setCategories] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
   const [formData, setFormData] = useState({
     newsTitle: "",
     headline: "",
     newsContent: "",
     newsSource: "",
     newsStatus: 1,
-    category: { categoryID: "" },
-    tags: [],
+    categoryID: "",
+    tagIds: [],
   });
 
   useEffect(() => {
-    if (newsData) setFormData(newsData);
-    else
+    // Load danh mục và tag để chọn
+    const fetchData = async () => {
+      const [catRes, tagRes] = await Promise.all([
+        API.get("/categories"),
+        API.get("/tags"),
+      ]);
+      setCategories(catRes.data);
+      setAvailableTags(tagRes.data);
+    };
+    if (show) fetchData();
+
+    if (selectedNews) {
+      setFormData({
+        ...selectedNews,
+        categoryID: selectedNews.category?.categoryID || "",
+        tagIds: selectedNews.tags?.map((t) => t.tagID) || [],
+      });
+    } else {
       setFormData({
         newsTitle: "",
         headline: "",
         newsContent: "",
         newsSource: "",
         newsStatus: 1,
-        category: { categoryID: "" },
-        tags: [],
+        categoryID: "",
+        tagIds: [],
       });
-  }, [newsData, show]);
-
-  // Xử lý chọn Tags (Many-to-Many)
-  const handleTagChange = (tag) => {
-    const isExist = formData.tags.find((t) => t.tagID === tag.tagID);
-    if (isExist) {
-      setFormData({
-        ...formData,
-        tags: formData.tags.filter((t) => t.tagID !== tag.tagID),
-      });
-    } else {
-      setFormData({ ...formData, tags: [...formData.tags, tag] });
     }
+  }, [show, selectedNews]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  const handleTagChange = (tagID) => {
+    const newTagIds = formData.tagIds.includes(tagID)
+      ? formData.tagIds.filter((id) => id !== tagID)
+      : [...formData.tagIds, tagID];
+    setFormData({ ...formData, tagIds: newTagIds });
   };
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>
-          {newsData ? "Edit Article" : "Create Article"}
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
+    <Modal show={show} onHide={onHide} size="lg">
+      <Form onSubmit={handleSubmit}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedNews ? "Sửa tin tức" : "Thêm tin tức mới"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           <Form.Group className="mb-3">
-            <Form.Label>Title</Form.Label>
+            <Form.Label>Tiêu đề</Form.Label>
             <Form.Control
-              type="text"
+              required
               value={formData.newsTitle}
               onChange={(e) =>
                 setFormData({ ...formData, newsTitle: e.target.value })
               }
             />
           </Form.Group>
-
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Danh mục</Form.Label>
+                <Form.Select
+                  required
+                  value={formData.categoryID}
+                  onChange={(e) =>
+                    setFormData({ ...formData, categoryID: e.target.value })
+                  }
+                >
+                  <option value="">-- Chọn danh mục --</option>
+                  {categories.map((c) => (
+                    <option key={c.categoryID} value={c.categoryID}>
+                      {c.categoryName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nguồn tin</Form.Label>
+                <Form.Control
+                  value={formData.newsSource}
+                  onChange={(e) =>
+                    setFormData({ ...formData, newsSource: e.target.value })
+                  }
+                />
+              </Form.Group>
+            </Col>
+          </Row>
           <Form.Group className="mb-3">
-            <Form.Label>Category</Form.Label>
-            <Form.Select
-              value={formData.category.categoryID}
+            <Form.Label>Nội dung</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={5}
+              required
+              value={formData.newsContent}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  category: { categoryID: e.target.value },
-                })
+                setFormData({ ...formData, newsContent: e.target.value })
               }
-            >
-              <option value="">Select Category</option>
-              {categories.map((c) => (
-                <option key={c.categoryID} value={c.categoryID}>
-                  {c.categoryName}
-                </option>
-              ))}
-            </Form.Select>
+            />
           </Form.Group>
-
           <Form.Group className="mb-3">
             <Form.Label>Tags</Form.Label>
             <div className="d-flex flex-wrap gap-2">
-              {allTags.map((tag) => (
+              {availableTags.map((tag) => (
                 <Form.Check
                   key={tag.tagID}
                   type="checkbox"
                   label={tag.tagName}
-                  checked={formData.tags.some((t) => t.tagID === tag.tagID)}
-                  onChange={() => handleTagChange(tag)}
+                  checked={formData.tagIds.includes(tag.tagID)}
+                  onChange={() => handleTagChange(tag.tagID)}
                 />
               ))}
             </div>
           </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Close
-        </Button>
-        <Button variant="primary" onClick={() => handleSave(formData)}>
-          Save Article
-        </Button>
-      </Modal.Footer>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Hủy
+          </Button>
+          <Button variant="primary" type="submit">
+            Lưu lại
+          </Button>
+        </Modal.Footer>
+      </Form>
     </Modal>
   );
 };
+
 export default NewsArticleModal;
