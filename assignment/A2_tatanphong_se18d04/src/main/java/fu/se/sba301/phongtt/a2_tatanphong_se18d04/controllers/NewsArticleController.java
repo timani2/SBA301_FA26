@@ -2,8 +2,11 @@ package fu.se.sba301.phongtt.a2_tatanphong_se18d04.controllers;
 
 
 import fu.se.sba301.phongtt.a2_tatanphong_se18d04.pojos.NewsArticle;
+import fu.se.sba301.phongtt.a2_tatanphong_se18d04.pojos.SystemAccount;
 import fu.se.sba301.phongtt.a2_tatanphong_se18d04.services.NewsArticleService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +16,8 @@ import java.util.List;
 public class NewsArticleController {
     @Autowired
     private NewsArticleService newsService;
+    @Autowired
+    private NewsArticleService newsArticleService;
 
     // Public: Xem tin tức đang hoạt động (không cần login)
     @GetMapping("/active")
@@ -26,9 +31,18 @@ public class NewsArticleController {
         return newsService.getMyNewsHistory(staffId);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<NewsArticle> updateNews(@PathVariable Integer id, @RequestBody NewsArticle news) {
+        try {
+            NewsArticle result = newsArticleService.updateNews(id, news);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
     @PostMapping
     public NewsArticle create(@RequestBody NewsArticle article) {
-        return newsService.createOrUpdateNews(article);
+        return newsService.createNews(article);
     }
 
     @DeleteMapping("/{id}")

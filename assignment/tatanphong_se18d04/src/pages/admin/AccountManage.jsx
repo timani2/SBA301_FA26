@@ -7,115 +7,89 @@ import {
   InputGroup,
   Row,
   Col,
-  Alert,
+  Stack,
 } from "react-bootstrap";
 import { accountService } from "../../services/accountService";
 import AccountModal from "../../components/modals/AccountModal";
+import ConfirmModal from "../../components/modals/ConfirmModal"; // Import Modal mới
+import { toast } from "react-toastify";
 
 const AccountManage = () => {
   const [accounts, setAccounts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [message, setMessage] = useState({ type: "", content: "" });
 
-  // 1. Load danh sách tài khoản khi vào trang
+  // States cho ConfirmModal
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [targetId, setTargetId] = useState(null);
+
   useEffect(() => {
     loadAccounts();
   }, []);
 
   const loadAccounts = async () => {
     try {
-      const response = await accountService.getAll();
-      setAccounts(response.data);
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách:", error);
+      const res = await accountService.getAll();
+      setAccounts(res.data);
+    } catch (err) {
+      toast.error("Không thể tải danh sách tài khoản");
     }
   };
 
-  // 2. Xử lý Tìm kiếm (Search)
   const handleSearch = async () => {
+    const res = await accountService.search(searchTerm);
+    setAccounts(res.data);
+  };
+
+  const confirmDelete = (id) => {
+    setTargetId(id);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = async () => {
     try {
-      const response = await accountService.search(searchTerm);
-      setAccounts(response.data);
+      const response = await accountService.delete(targetId);
+      toast.success(response.data);
+      loadAccounts();
     } catch (error) {
-      console.error("Lỗi tìm kiếm:", error);
+      toast.error(error.response?.data || "Lỗi khi xóa tài khoản");
+    } finally {
+      setShowConfirm(false);
     }
   };
 
-  // 3. Xử lý Xóa (Delete) với xác nhận
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa tài khoản này không?")) {
-      try {
-        const response = await accountService.delete(id);
-        setMessage({ type: "success", content: response.data });
-        loadAccounts(); // Load lại danh sách sau khi xóa
-      } catch (error) {
-        // Hiển thị lỗi từ Backend (ví dụ: Tài khoản đã có bài viết nên không được xóa)
-        setMessage({
-          type: "danger",
-          content: error.response?.data || "Lỗi khi xóa tài khoản",
-        });
-      }
-    }
-  };
-
-  // 4. Xử lý lưu dữ liệu từ Modal (Create hoặc Update)
   const handleSave = async (formData) => {
     try {
       if (selectedAccount) {
-        // Nếu có selectedAccount -> Gọi API Update
         await accountService.update(formData.accountID, formData);
-        setMessage({
-          type: "success",
-          content: "Cập nhật tài khoản thành công!",
-        });
+        toast.success("Cập nhật thành công!");
       } else {
-        // Nếu không -> Gọi API Create
         await accountService.create(formData);
-        setMessage({
-          type: "success",
-          content: "Tạo tài khoản mới thành công!",
-        });
+        toast.success("Tạo mới thành công!");
       }
       setShowModal(false);
       loadAccounts();
     } catch (error) {
-      setMessage({ type: "danger", content: "Lỗi khi lưu dữ liệu!" });
+      toast.error("Lỗi khi lưu dữ liệu!");
     }
   };
 
-  const openCreateModal = () => {
-    setSelectedAccount(null);
-    setShowModal(true);
-  };
-
-  const openUpdateModal = (account) => {
-    setSelectedAccount(account);
-    setShowModal(true);
-  };
-
   return (
-    <Container>
-      <div className="d-flex justify-content-between align-items-center my-4">
+    <Container className="mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Account Management</h2>
-        <Button variant="success" onClick={openCreateModal}>
+        <Button
+          variant="success"
+          onClick={() => {
+            setSelectedAccount(null);
+            setShowModal(true);
+          }}
+        >
           + Add New Account
         </Button>
       </div>
 
-      {/* Thông báo lỗi hoặc thành công */}
-      {message.content && (
-        <Alert
-          variant={message.type}
-          onClose={() => setMessage({ type: "", content: "" })}
-          dismissible
-        >
-          {message.content}
-        </Alert>
-      )}
-
-      {/* Thanh Tìm kiếm */}
       <Row className="mb-3">
         <Col md={6}>
           <InputGroup>
@@ -123,6 +97,7 @@ const AccountManage = () => {
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
             <Button variant="primary" onClick={handleSearch}>
               Search
@@ -131,55 +106,67 @@ const AccountManage = () => {
         </Col>
       </Row>
 
-      {/* Bảng danh sách tài khoản */}
-      <Table striped bordered hover responsive shadow-sm>
+      <Table striped bordered hover responsive style={{ tableLayout: "fixed" }}>
         <thead className="table-dark">
           <tr>
-            <th>ID</th>
+            <th style={{ width: "70px" }}>ID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
+            <th style={{ width: "120px" }}>Role</th>
+            <th style={{ width: "180px" }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {accounts.map((acc) => (
-            <tr key={acc.accountID}>
+            <tr key={acc.accountID} style={{ verticalAlign: "middle" }}>
               <td>{acc.accountID}</td>
               <td>{acc.accountName}</td>
               <td>{acc.accountEmail}</td>
               <td>{acc.accountRole === 1 ? "Admin" : "Staff"}</td>
               <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => openUpdateModal(acc)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(acc.accountID)}
-                >
-                  Delete
-                </Button>
+                <Stack direction="horizontal" gap={2}>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    style={{ width: "70px" }}
+                    onClick={() => {
+                      setSelectedAccount(acc);
+                      setShowModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    style={{ width: "70px" }}
+                    onClick={() => confirmDelete(acc.accountID)}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
 
-      {/* Gọi Modal để Thêm/Sửa */}
       <AccountModal
         show={showModal}
         handleClose={() => setShowModal(false)}
         handleSave={handleSave}
         accountData={selectedAccount}
       />
+
+      {/* Confirm Modal thay thế alert confirm */}
+      <ConfirmModal
+        show={showConfirm}
+        handleClose={() => setShowConfirm(false)}
+        title="Xác nhận xóa"
+        body="Bạn có chắc chắn muốn xóa tài khoản này không? Thao tác này không thể hoàn tác."
+        onConfirm={handleDelete}
+      />
     </Container>
   );
 };
-
 export default AccountManage;

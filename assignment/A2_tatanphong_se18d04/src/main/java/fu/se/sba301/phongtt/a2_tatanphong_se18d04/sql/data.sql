@@ -31,4 +31,3 @@ VALUES
     (N'Lập trình Java với Spring Boot', N'Hướng dẫn cơ bản cho người mới bắt đầu', N'Spring Boot giúp việc tạo ứng dụng Java trở nên nhanh chóng...', 'Javaguides', 1, GETDATE(), 5, 2),
     (N'Tình hình kinh tế toàn cầu', N'Những chuyển biến mới trong đầu năm 2026', N'Dữ liệu chi tiết về thị trường chứng khoán và lạm phát...', 'Reuters', 1, GETDATE(), 1, 3);
 
--- 5. Insert Dữ liệu mẫu cho bảng trung gian NewsTag (Quan hệ Many-to-Many)

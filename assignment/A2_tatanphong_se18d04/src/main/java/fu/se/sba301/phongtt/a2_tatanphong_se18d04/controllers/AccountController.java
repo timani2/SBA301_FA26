@@ -38,4 +38,9 @@ public class AccountController {
         }
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/search")
+    public List<SystemAccount> search(@RequestParam String keyword) {
+        return accountService.searchAccounts(keyword);
+    }
 }

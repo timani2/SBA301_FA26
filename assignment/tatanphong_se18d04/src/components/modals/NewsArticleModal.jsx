@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import API from "../../services/api";
+import { categoryService } from "../../services/categoryService";
 
 const NewsArticleModal = ({ show, onHide, onSave, selectedNews }) => {
   const [categories, setCategories] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
   const [formData, setFormData] = useState({
     newsTitle: "",
     headline: "",
@@ -12,26 +11,15 @@ const NewsArticleModal = ({ show, onHide, onSave, selectedNews }) => {
     newsSource: "",
     newsStatus: 1,
     categoryID: "",
-    tagIds: [],
   });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    // Load danh mục và tag để chọn
-    const fetchData = async () => {
-      const [catRes, tagRes] = await Promise.all([
-        API.get("/categories"),
-        API.get("/tags"),
-      ]);
-      setCategories(catRes.data);
-      setAvailableTags(tagRes.data);
-    };
-    if (show) fetchData();
-
+    categoryService.getAll().then((res) => setCategories(res.data));
     if (selectedNews) {
       setFormData({
         ...selectedNews,
         categoryID: selectedNews.category?.categoryID || "",
-        tagIds: selectedNews.tags?.map((t) => t.tagID) || [],
       });
     } else {
       setFormData({
@@ -41,65 +29,92 @@ const NewsArticleModal = ({ show, onHide, onSave, selectedNews }) => {
         newsSource: "",
         newsStatus: 1,
         categoryID: "",
-        tagIds: [],
       });
     }
-  }, [show, selectedNews]);
+    setErrors({});
+  }, [selectedNews, show]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
+  const validate = () => {
+    let newErrors = {};
+    if (!formData.newsTitle.trim()) newErrors.newsTitle = "Title is required";
+    if (!formData.headline.trim()) newErrors.headline = "Headline is required";
+    if (!formData.newsContent.trim())
+      newErrors.newsContent = "Content is required";
+    if (!formData.categoryID) newErrors.categoryID = "Please select a category";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleTagChange = (tagID) => {
-    const newTagIds = formData.tagIds.includes(tagID)
-      ? formData.tagIds.filter((id) => id !== tagID)
-      : [...formData.tagIds, tagID];
-    setFormData({ ...formData, tagIds: newTagIds });
+  const handleSubmit = () => {
+    if (validate()) onSave(formData);
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
-      <Form onSubmit={handleSubmit}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {selectedNews ? "Sửa tin tức" : "Thêm tin tức mới"}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+    <Modal show={show} onHide={onHide} size="lg" centered backdrop="static">
+      <Modal.Header closeButton className="bg-primary text-white">
+        <Modal.Title>
+          {selectedNews ? "Edit Article" : "Create Article"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
           <Form.Group className="mb-3">
-            <Form.Label>Tiêu đề</Form.Label>
+            <Form.Label className="fw-bold">Article Title *</Form.Label>
             <Form.Control
-              required
+              isInvalid={!!errors.newsTitle}
               value={formData.newsTitle}
               onChange={(e) =>
                 setFormData({ ...formData, newsTitle: e.target.value })
               }
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.newsTitle}
+            </Form.Control.Feedback>
           </Form.Group>
-          <Row>
+
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold">Headline *</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={2}
+              isInvalid={!!errors.headline}
+              value={formData.headline}
+              onChange={(e) =>
+                setFormData({ ...formData, headline: e.target.value })
+              }
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.headline}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Row className="mb-3">
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Danh mục</Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-bold">Category *</Form.Label>
                 <Form.Select
-                  required
+                  isInvalid={!!errors.categoryID}
                   value={formData.categoryID}
                   onChange={(e) =>
                     setFormData({ ...formData, categoryID: e.target.value })
                   }
                 >
-                  <option value="">-- Chọn danh mục --</option>
+                  <option value="">-- Select Category --</option>
                   {categories.map((c) => (
                     <option key={c.categoryID} value={c.categoryID}>
                       {c.categoryName}
                     </option>
                   ))}
                 </Form.Select>
+                <Form.Control.Feedback type="invalid">
+                  {errors.categoryID}
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Nguồn tin</Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-bold">Source</Form.Label>
                 <Form.Control
                   value={formData.newsSource}
                   onChange={(e) =>
@@ -109,44 +124,33 @@ const NewsArticleModal = ({ show, onHide, onSave, selectedNews }) => {
               </Form.Group>
             </Col>
           </Row>
+
           <Form.Group className="mb-3">
-            <Form.Label>Nội dung</Form.Label>
+            <Form.Label className="fw-bold">Full Content *</Form.Label>
             <Form.Control
               as="textarea"
               rows={5}
-              required
+              isInvalid={!!errors.newsContent}
               value={formData.newsContent}
               onChange={(e) =>
                 setFormData({ ...formData, newsContent: e.target.value })
               }
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.newsContent}
+            </Form.Control.Feedback>
           </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Tags</Form.Label>
-            <div className="d-flex flex-wrap gap-2">
-              {availableTags.map((tag) => (
-                <Form.Check
-                  key={tag.tagID}
-                  type="checkbox"
-                  label={tag.tagName}
-                  checked={formData.tagIds.includes(tag.tagID)}
-                  onChange={() => handleTagChange(tag.tagID)}
-                />
-              ))}
-            </div>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Hủy
-          </Button>
-          <Button variant="primary" type="submit">
-            Lưu lại
-          </Button>
-        </Modal.Footer>
-      </Form>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onHide}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleSubmit}>
+          Save Article
+        </Button>
+      </Modal.Footer>
     </Modal>
   );
 };
-
 export default NewsArticleModal;

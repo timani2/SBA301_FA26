@@ -59,7 +59,6 @@ const AccountModal = ({ show, handleClose, handleSave, accountData }) => {
       </Modal.Header>
       <Form noValidate validated={validated} onSubmit={handleSubmit}>
         <Modal.Body>
-          {/* Name Field */}
           <Form.Group className="mb-3">
             <Form.Label>Account Name</Form.Label>
             <Form.Control
@@ -75,7 +74,6 @@ const AccountModal = ({ show, handleClose, handleSave, accountData }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* Email Field [cite: 35] */}
           <Form.Group className="mb-3">
             <Form.Label>Email Address</Form.Label>
             <Form.Control
@@ -104,7 +102,6 @@ const AccountModal = ({ show, handleClose, handleSave, accountData }) => {
             </Form.Select>
           </Form.Group>
 
-          {/* Password Field [cite: 35] */}
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
             <Form.Control

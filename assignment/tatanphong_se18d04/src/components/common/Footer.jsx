@@ -3,7 +3,7 @@ import { Container } from "react-bootstrap";
 
 const Footer = () => {
   return (
-    <footer className="mt-5 py-3 bg-light border-top">
+    <footer className=" py-3 bg-light border-top">
       <Container className="text-center">
         <span className="text-muted">
           © 2026 FUNews Management System - Assignment 02 - PhongTT

@@ -41,4 +41,8 @@ public class SystemAccountService {
                 .filter(acc -> acc.getAccountPassword().equals(password))
                 .orElse(null);
     }
+
+    public List<SystemAccount> searchAccounts(String keyword) {
+        return accountRepository.findByAccountNameContainingOrAccountEmailContaining(keyword, keyword);
+    }
 }

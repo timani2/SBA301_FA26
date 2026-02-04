@@ -36,7 +36,6 @@ public class NewsArticle {
 
     @ManyToOne
     @JoinColumn(name = "CreatedByID")
-    @JsonIgnore
     private SystemAccount createdBy;
 
     @ManyToMany

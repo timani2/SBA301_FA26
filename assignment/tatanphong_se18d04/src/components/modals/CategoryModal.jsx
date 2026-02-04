@@ -1,56 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const CategoryModal = ({
-  show,
-  handleClose,
-  handleSave,
-  categoryData,
-  categories,
-}) => {
-  // State để quản lý dữ liệu trong Form
+const CategoryModal = ({ show, handleClose, handleSave, categoryData }) => {
   const [formData, setFormData] = useState({
     categoryName: "",
-    categoryDesciption: "",
-    isActive: true,
-    parentCategory: null,
+    categoryDescription: "",
   });
+  const [errors, setErrors] = useState({});
 
-  // Cập nhật form khi mở Modal (để Sửa hoặc Thêm mới)
   useEffect(() => {
-    if (categoryData) {
-      setFormData(categoryData); // Nếu có dữ liệu cũ -> Trang thái Sửa
-    } else {
-      setFormData({
-        categoryName: "",
-        categoryDesciption: "",
-        isActive: true,
-        parentCategory: null,
-      }); // Thêm mới
-    }
+    if (categoryData) setFormData(categoryData);
+    else setFormData({ categoryName: "", categoryDescription: "" });
+    setErrors({});
   }, [categoryData, show]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+  const validate = () => {
+    let newErrors = {};
+    if (!formData.categoryName.trim())
+      newErrors.categoryName = "Category Name is required";
+    if (!formData.categoryDescription.trim())
+      newErrors.categoryDescription = "Description is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleParentChange = (e) => {
-    const parentId = e.target.value;
-    setFormData({
-      ...formData,
-      parentCategory: parentId ? { categoryID: parseInt(parentId) } : null,
-    });
+  const handleSubmit = () => {
+    if (validate()) handleSave(formData);
   };
 
   return (
     <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
+      <Modal.Header closeButton className="bg-primary text-white">
         <Modal.Title>
-          {categoryData ? "Update Category" : "Create New Category"}
+          {categoryData ? "Edit Category" : "Add Category"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -58,49 +41,33 @@ const CategoryModal = ({
           <Form.Group className="mb-3">
             <Form.Label>Category Name</Form.Label>
             <Form.Control
-              type="text"
-              name="categoryName"
+              isInvalid={!!errors.categoryName}
               value={formData.categoryName}
-              onChange={handleChange}
-              placeholder="Enter name"
+              onChange={(e) =>
+                setFormData({ ...formData, categoryName: e.target.value })
+              }
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.categoryName}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>Description</Form.Label>
             <Form.Control
               as="textarea"
-              rows={3}
-              name="categoryDesciption"
-              value={formData.categoryDesciption}
-              onChange={handleChange}
+              isInvalid={!!errors.categoryDescription}
+              value={formData.categoryDescription}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  categoryDescription: e.target.value,
+                })
+              }
             />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Parent Category</Form.Label>
-            <Form.Select
-              name="parentCategory"
-              onChange={handleParentChange}
-              value={formData.parentCategory?.categoryID || ""}
-            >
-              <option value="">None (Root Category)</option>
-              {categories.map((cat) => (
-                <option key={cat.categoryID} value={cat.categoryID}>
-                  {cat.categoryName}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Check
-              type="checkbox"
-              label="Is Active"
-              name="isActive"
-              checked={formData.isActive}
-              onChange={handleChange}
-            />
+            <Form.Control.Feedback type="invalid">
+              {errors.categoryDescription}
+            </Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>
@@ -108,12 +75,11 @@ const CategoryModal = ({
         <Button variant="secondary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={() => handleSave(formData)}>
-          {categoryData ? "Save Changes" : "Create"}
+        <Button variant="primary" onClick={handleSubmit}>
+          Save
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
-
 export default CategoryModal;

@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
             className="bg-light border-end"
             style={{ width: "250px", minHeight: "100%" }}
           >
-            <ListGroup variant="flush" className="p-3">
+            <ListGroup variant="flush" className="p-3 primary-bg-light">
               <div className="mb-4 text-center">
                 <small className="text-muted text-uppercase fw-bold">
                   Menu Management

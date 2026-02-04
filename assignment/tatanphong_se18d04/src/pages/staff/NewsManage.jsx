@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Button, Table } from "react-bootstrap";
+import { Button, Table, Container, Stack, Badge } from "react-bootstrap";
 import { newsService } from "../../services/newsService";
 import NewsArticleModal from "../../components/modals/NewsArticleModal";
+import ConfirmModal from "../../components/modals/ConfirmModal";
 import { authService } from "../../services/authService";
+import { toast } from "react-toastify";
 
 const NewsManage = () => {
   const [news, setNews] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [targetId, setTargetId] = useState(null);
 
   useEffect(() => {
     loadNews();
@@ -15,66 +20,60 @@ const NewsManage = () => {
 
   const loadNews = async () => {
     const user = authService.getCurrentUser();
-    if (!user || !user.accountID) {
-      alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
-      return;
-    }
+    if (!user) return;
     const res = await newsService.getAll(user.accountID);
     setNews(res.data);
+  };
+
+  const confirmDelete = (id) => {
+    setTargetId(id);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await newsService.delete(targetId);
+      toast.success("Xóa bài viết thành công!");
+      loadNews();
+    } catch (err) {
+      toast.error("Không thể xóa bài viết này!");
+    } finally {
+      setShowConfirm(false);
+    }
   };
 
   const handleSave = async (formData) => {
     try {
       const user = authService.getCurrentUser();
-
-      // Kiểm tra nếu chưa đăng nhập thì không cho lưu
-      if (!user || !user.accountID) {
-        alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
-        return;
-      }
-
-      // Chuẩn hóa dữ liệu chuẩn 100% để gửi về Backend
       const payload = {
-        newsTitle: formData.newsTitle,
-        headline: formData.headline,
-        newsContent: formData.newsContent,
-        newsSource: formData.newsSource,
+        ...formData,
         newsStatus: parseInt(formData.newsStatus),
-        // Gán thủ công ngày hiện tại để tránh bị <null> trong DB
         createdDate: new Date().toISOString(),
-        // Bắt buộc gửi object chứa ID cho Category
         category: { categoryID: parseInt(formData.categoryID) },
-        // Đảm bảo gán đúng thông tin Staff đang login
         createdBy: { accountID: user.accountID },
-        // Chuyển danh sách ID tag thành mảng các Object
         tags: formData.tagIds
           ? formData.tagIds.map((id) => ({ tagID: parseInt(id) }))
           : [],
       };
 
-      if (selectedNews) {
+      if (selectedNews)
         await newsService.update(selectedNews.newsArticleID, payload);
-      } else {
-        await newsService.create(payload);
-      }
+      else await newsService.create(payload);
 
       setShowModal(false);
-      loadNews(); // Sau khi lưu, hàm này sẽ gọi GET để cập nhật lại bảng
-      alert("Lưu tin tức thành công!");
+      loadNews();
+      toast.success("Lưu bài viết thành công!");
     } catch (error) {
-      console.error("Lỗi gửi dữ liệu:", error.response?.data);
-      alert(
-        "Lỗi: " +
-          (error.response?.data?.message ||
-            "Không thể lưu dữ liệu. Kiểm tra lại Backend!"),
-      );
+      toast.error("Lỗi: Không thể lưu bài viết!");
     }
   };
+
   return (
-    <div>
-      <div className="d-flex justify-content-between mb-3">
+    <Container className="mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h3>Quản lý tin tức</h3>
         <Button
+          variant="primary"
           onClick={() => {
             setSelectedNews(null);
             setShowModal(true);
@@ -84,34 +83,49 @@ const NewsManage = () => {
         </Button>
       </div>
 
-      <Table striped bordered hover>
-        <thead>
+      <Table striped bordered hover responsive style={{ tableLayout: "fixed" }}>
+        <thead className="table-dark">
           <tr>
-            <th>ID</th>
+            <th style={{ width: "70px" }}>ID</th>
             <th>Tiêu đề</th>
-            <th>Danh mục</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
+            <th style={{ width: "150px" }}>Danh mục</th>
+            <th style={{ width: "120px" }}>Trạng thái</th>
+            <th style={{ width: "180px" }}>Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {news.map((item) => (
-            <tr key={item.newsArticleID}>
+            <tr key={item.newsArticleID} style={{ verticalAlign: "middle" }}>
               <td>{item.newsArticleID}</td>
-              <td>{item.newsTitle}</td>
+              <td className="text-truncate">{item.newsTitle}</td>
               <td>{item.category?.categoryName}</td>
-              <td>{item.newsStatus === 1 ? "Active" : "Inactive"}</td>
               <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedNews(item);
-                    setShowModal(true);
-                  }}
-                >
-                  Sửa
-                </Button>
+                <Badge bg={item.newsStatus === 1 ? "success" : "secondary"}>
+                  {item.newsStatus === 1 ? "Active" : "Inactive"}
+                </Badge>
+              </td>
+              <td>
+                <Stack direction="horizontal" gap={2}>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    style={{ width: "70px" }}
+                    onClick={() => {
+                      setSelectedNews(item);
+                      setShowModal(true);
+                    }}
+                  >
+                    Sửa
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    style={{ width: "70px" }}
+                    onClick={() => confirmDelete(item.newsArticleID)}
+                  >
+                    Xóa
+                  </Button>
+                </Stack>
               </td>
             </tr>
           ))}
@@ -124,8 +138,15 @@ const NewsManage = () => {
         onSave={handleSave}
         selectedNews={selectedNews}
       />
-    </div>
+
+      <ConfirmModal
+        show={showConfirm}
+        handleClose={() => setShowConfirm(false)}
+        title="Xác nhận xóa bài viết"
+        body="Bạn có chắc chắn muốn xóa bài viết này không?"
+        onConfirm={handleDelete}
+      />
+    </Container>
   );
 };
-
 export default NewsManage;
