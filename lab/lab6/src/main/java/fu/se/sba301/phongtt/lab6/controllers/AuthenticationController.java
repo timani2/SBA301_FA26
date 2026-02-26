@@ -27,7 +27,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDTO loginUserDto) { // Sửa Typo DTo -> DTO
+    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDTO loginUserDto) {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
         String jwtToken = jwtService.generateToken(authenticatedUser);
 

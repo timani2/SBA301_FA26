@@ -13,6 +13,6 @@ export const accountService = {
   // Xóa tài khoản (Backend đã có check ràng buộc không cho xóa nếu có bài viết)
   delete: (id) => API.delete(`/accounts/${id}`),
 
-  // Tìm kiếm tài khoản theo keyword [cite: 50]
+  // Tìm kiếm tài khoản theo keyword
   search: (keyword) => API.get(`/accounts/search?keyword=${keyword}`),
 };
