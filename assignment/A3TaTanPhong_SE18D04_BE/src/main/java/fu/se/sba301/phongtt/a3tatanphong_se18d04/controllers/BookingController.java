@@ -3,6 +3,7 @@ package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.BookingReservation;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,5 +34,12 @@ public class BookingController {
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public List<BookingReservation> getAllBookings() {
         return bookingService.getAllBookings();
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+    public ResponseEntity<?> updateBookingStatus(@PathVariable Integer id, @RequestParam Integer status) {
+        bookingService.updateStatus(id, status);
+        return ResponseEntity.ok("Cập nhật trạng thái thành công");
     }
 }

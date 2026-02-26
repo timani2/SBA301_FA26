@@ -31,4 +31,12 @@ public class BookingService {
     public List<BookingReservation> getAllBookings() {
         return bookingRepository.findAll();
     }
-}
+
+    public void updateStatus(Integer bookingId, Integer status) {
+        BookingReservation reservation = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng"));
+
+        // Cập nhật trạng thái (Ví dụ: 1-Chờ, 2-Xác nhận, 3-Hủy)
+        reservation.setBookingStatus(status);
+        bookingRepository.save(reservation);
+    }}
