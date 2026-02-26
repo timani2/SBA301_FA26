@@ -14,7 +14,7 @@ import java.util.Date;
 public class JwtUtils {
 
     // Lấy giá trị từ application.properties [cite: 45]
-    @Value("${hotel.jwt.secret:FUMiniHotelSystem_SecretKey_2026_Secure_Long_String_Minimum_64_Chars}")
+    @Value("${hotel.jwt.secret}")
     private String jwtSecret;
 
     @Value("${hotel.jwt.expirationMs:86400000}")
