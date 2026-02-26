@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { bookingService } from "../services/bookingService";
+import bookingService from "../services/bookingService";
 
 export const useBookings = () => {
   const [bookings, setBookings] = useState([]); // Chứa danh sách lịch sử hoặc toàn bộ đơn

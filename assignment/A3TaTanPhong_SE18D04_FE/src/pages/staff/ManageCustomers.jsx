@@ -1,16 +1,22 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Table, Badge, Button } from "react-bootstrap";
 import { useCustomers } from "../../hooks/useCustomers";
 import { formatDate } from "../../utils/formatDate";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import CustomerModal from "../../components/modals/CustomerModal";
 
 const ManageCustomers = () => {
-  const { customers, loading, fetchAllCustomers } = useCustomers();
+  const { customers, loading, fetchAllCustomers, updateProfile } =
+    useCustomers();
 
   // Tự động lấy danh sách khi trang vừa load
   useEffect(() => {
     fetchAllCustomers();
   }, [fetchAllCustomers]);
+
+  // state cho modal sửa/khóa
+  const [showForm, setShowForm] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
 
   if (loading && customers.length === 0)
     return <LoadingSpinner text="Đang tải danh sách khách hàng..." />;
@@ -58,10 +64,18 @@ const ManageCustomers = () => {
                   </Badge>
                 </td>
                 <td className="text-center">
-                  <Button variant="outline-primary" size="sm" className="me-2">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => {
+                      setEditingCustomer(customer);
+                      setShowForm(true);
+                    }}
+                  >
                     Sửa
                   </Button>
-                  {/* Nút Khóa/Mở khóa tượng trưng */}
+                  {/* Nút Khóa/Mở khóa */}
                   <Button
                     variant={
                       customer.customerStatus === 1
@@ -69,6 +83,17 @@ const ManageCustomers = () => {
                         : "outline-success"
                     }
                     size="sm"
+                    onClick={async () => {
+                      // toggle status
+                      const newStatus = customer.customerStatus === 1 ? 0 : 1;
+                      const ok = await updateProfile(customer.customerId, {
+                        customerStatus: newStatus,
+                      });
+                      if (ok) {
+                        // update local state
+                        fetchAllCustomers();
+                      }
+                    }}
                   >
                     {customer.customerStatus === 1 ? "Khóa" : "Mở khóa"}
                   </Button>
@@ -84,6 +109,20 @@ const ManageCustomers = () => {
           )}
         </tbody>
       </Table>
+
+      {/* modal sửa khách hàng */}
+      <CustomerModal
+        show={showForm}
+        handleClose={() => setShowForm(false)}
+        initialData={editingCustomer}
+        onSave={async (data) => {
+          const ok = await updateProfile(data.customerId, data);
+          if (ok) {
+            fetchAllCustomers();
+          }
+          return ok;
+        }}
+      />
     </Container>
   );
 };

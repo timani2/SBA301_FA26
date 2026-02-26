@@ -1,10 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import { Container, Row, Col, Card, Badge, Button } from "react-bootstrap";
 import { useRooms } from "../../hooks/useRooms";
 import { formatCurrency } from "../../utils/formatCurrency";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../contexts/AuthContext";
+import { toast } from "react-toastify";
 
 const Home = () => {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   // Lấy dữ liệu và hàm fetch từ hook
   const { rooms, loading, fetchRooms } = useRooms();
 
@@ -51,6 +57,15 @@ const Home = () => {
                     variant="outline-primary"
                     className="w-100"
                     disabled={room.roomStatus === 0}
+                    onClick={() => {
+                      if (!user) {
+                        navigate("/login");
+                      } else if (user.role !== "ROLE_CUSTOMER") {
+                        toast.warning("Chỉ khách hàng mới có thể đặt phòng");
+                      } else {
+                        navigate(`/customer/book?room=${room.roomId}`);
+                      }
+                    }}
                   >
                     Đặt Phòng Ngay
                   </Button>

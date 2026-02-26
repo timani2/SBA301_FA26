@@ -106,6 +106,7 @@ const Profile = () => {
                     name="customerBirthday"
                     value={formData.customerBirthday}
                     onChange={handleChange}
+                    max={new Date().toISOString().split("T")[0]}
                   />
                 </Form.Group>
               </Col>

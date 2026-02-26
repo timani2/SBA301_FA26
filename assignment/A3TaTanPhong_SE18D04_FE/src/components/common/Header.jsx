@@ -49,6 +49,9 @@ const Header = () => {
             {/* Menu cho CUSTOMER */}
             {user?.role === "ROLE_CUSTOMER" && (
               <>
+                <Nav.Link as={Link} to="/customer/book">
+                  Đặt phòng
+                </Nav.Link>
                 <Nav.Link as={Link} to="/customer/profile">
                   Hồ sơ của tôi
                 </Nav.Link>

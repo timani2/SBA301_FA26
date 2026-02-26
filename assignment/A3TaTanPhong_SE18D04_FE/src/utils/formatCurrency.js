@@ -4,7 +4,7 @@
  * @param {string} currency - 'VND' hoặc 'USD' (Mặc định là USD)
  * @returns {string} - Chuỗi đã định dạng
  */
-export const formatCurrency = (amount, currency = "USD") => {
+export const formatCurrency = (amount, currency = "VND") => {
   if (amount === null || amount === undefined) return "";
 
   if (currency === "VND") {

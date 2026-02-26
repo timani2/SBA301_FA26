@@ -13,6 +13,7 @@ import MainLayout from "./components/common/MainLayout";
 import { AuthContext } from "./contexts/AuthContext";
 
 // Import Các Trang Giao Diện (Đã mở comment)
+import ManageBookings from "./pages/staff/ManageBookings";
 import Home from "./pages/public/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -20,6 +21,7 @@ import ManageRooms from "./pages/staff/ManageRooms";
 import ManageCustomers from "./pages/staff/ManageCustomers";
 import Profile from "./pages/customer/Profile";
 import BookingHistory from "./pages/customer/BookingHistory";
+import CreateBooking from "./pages/customer/CreateBooking";
 
 // Component Bảo vệ Router (Chỉ cho phép Role được chỉ định truy cập)
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -66,7 +68,6 @@ function App() {
           {/* PUBLIC ROUTES (Ai cũng vào được) */}
           <Route path="/" element={<Navigate to="/rooms" replace />} />
           <Route path="/rooms" element={<Home />} />
-
           {/* CUSTOMER ROUTES (Chỉ ROLE_CUSTOMER) */}
           <Route
             path="/customer/profile"
@@ -84,7 +85,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/customer/book"
+            element={
+              <ProtectedRoute allowedRole="ROLE_CUSTOMER">
+                <CreateBooking />
+              </ProtectedRoute>
+            }
+          />
           {/* STAFF ROUTES (Chỉ ROLE_STAFF) */}
           <Route
             path="/staff/rooms"
@@ -99,6 +107,14 @@ function App() {
             element={
               <ProtectedRoute allowedRole="ROLE_STAFF">
                 <ManageCustomers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/bookings"
+            element={
+              <ProtectedRoute allowedRole="ROLE_STAFF">
+                <ManageBookings />
               </ProtectedRoute>
             }
           />

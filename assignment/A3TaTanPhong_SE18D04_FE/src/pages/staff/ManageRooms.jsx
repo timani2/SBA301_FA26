@@ -4,13 +4,18 @@ import { useRooms } from "../../hooks/useRooms";
 import { formatCurrency } from "../../utils/formatCurrency";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import ConfirmModal from "../../components/modals/ConfirmModal";
+import RoomModal from "../../components/modals/RoomModal";
 
 const ManageRooms = () => {
-  const { rooms, loading, fetchRooms, deleteRoom } = useRooms();
+  const { rooms, loading, fetchRooms, deleteRoom, saveRoom } = useRooms();
 
   // State quản lý việc hiển thị hộp thoại xác nhận xóa
   const [showDelete, setShowDelete] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+
+  // modal thêm / sửa phòng
+  const [showForm, setShowForm] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null);
 
   useEffect(() => {
     fetchRooms();
@@ -19,6 +24,26 @@ const ManageRooms = () => {
   const handleDeleteClick = (id) => {
     setSelectedRoomId(id);
     setShowDelete(true);
+  };
+
+  const handleEditClick = (room) => {
+    setEditingRoom(room);
+    setShowForm(true);
+  };
+
+  const handleAddClick = () => {
+    setEditingRoom(null);
+    setShowForm(true);
+  };
+
+  const handleSaveRoom = async (roomData) => {
+    // saveRoom trả về true nếu thành công
+    const isEdit = !!roomData.roomId;
+    const ok = await saveRoom(roomData, isEdit);
+    if (ok) {
+      fetchRooms(); // refresh list after change
+    }
+    return ok;
   };
 
   const confirmDelete = async () => {
@@ -35,7 +60,9 @@ const ManageRooms = () => {
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h3 className="fw-bold">Quản Lý Phòng</h3>
-        <Button variant="primary">Thêm Phòng Mới</Button>
+        <Button variant="primary" onClick={handleAddClick}>
+          Thêm Phòng Mới
+        </Button>
       </div>
 
       <Table
@@ -61,7 +88,11 @@ const ManageRooms = () => {
             <tr key={room.roomId}>
               <td>{room.roomId}</td>
               <td className="fw-bold">{room.roomNumber}</td>
-              <td>{room.roomTypeName || "Tiêu chuẩn"}</td>
+              <td>
+                {room.roomType?.roomTypeName ||
+                  room.roomTypeName ||
+                  "Tiêu chuẩn"}
+              </td>
               <td>{room.roomMaxCapacity}</td>
               <td className="text-danger fw-bold">
                 {formatCurrency(room.roomPricePerDay)}
@@ -72,7 +103,12 @@ const ManageRooms = () => {
                 </Badge>
               </td>
               <td className="text-center">
-                <Button variant="outline-warning" size="sm" className="me-2">
+                <Button
+                  variant="outline-warning"
+                  size="sm"
+                  className="me-2"
+                  onClick={() => handleEditClick(room)}
+                >
                   Sửa
                 </Button>
                 <Button
@@ -95,6 +131,17 @@ const ManageRooms = () => {
         handleConfirm={confirmDelete}
         title="Xác nhận xóa phòng"
         body={`Bạn có chắc chắn muốn xóa/đổi trạng thái phòng ID: ${selectedRoomId} không?`}
+      />
+
+      {/* Modal thêm/sửa phòng */}
+      <RoomModal
+        show={showForm}
+        handleClose={() => setShowForm(false)}
+        initialData={editingRoom}
+        typeOptions={[
+          ...new Set(rooms.map((r) => r.roomTypeName).filter(Boolean)),
+        ]}
+        onSave={handleSaveRoom}
       />
     </Container>
   );
