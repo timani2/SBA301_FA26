@@ -1,58 +1,70 @@
 import { useState, useCallback } from "react";
+import {
+  getRooms,
+  saveRoom,
+  deleteRoom,
+  getRoomTypes,
+} from "../services/roomService";
 import { toast } from "react-toastify";
-import { roomService } from "../services/roomService";
 
 export const useRooms = () => {
   const [rooms, setRooms] = useState([]);
+  const [roomTypes, setRoomTypes] = useState([]); // Trạng thái lưu danh sách loại phòng
   const [loading, setLoading] = useState(false);
 
-  // Lấy danh sách phòng (Dùng cho cả Khách và Staff)
-  // Dùng useCallback để tránh re-render không cần thiết khi truyền xuống Component con
+  // Lấy danh sách phòng
   const fetchRooms = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await roomService.getAllRooms();
+      const data = await getRooms();
       setRooms(data);
     } catch (error) {
-      console.error("Lỗi tải danh sách phòng:", error);
+      console.error("Lỗi fetch rooms:", error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Staff: Thêm hoặc Cập nhật phòng
-  const saveRoom = async (roomData, isEdit = false) => {
-    setLoading(true);
+  // Lấy danh sách loại phòng để Staff chọn
+  const fetchRoomTypes = useCallback(async () => {
     try {
-      await roomService.saveRoom(roomData);
-      toast.success(
-        isEdit ? "Cập nhật phòng thành công!" : "Thêm phòng mới thành công!",
-      );
-      // Sau khi lưu thành công, tải lại danh sách
-      fetchRooms();
-      return true; // Trả về true để UI biết mà đóng Modal
+      const data = await getRoomTypes();
+      setRoomTypes(data);
     } catch (error) {
-      console.error("Lỗi lưu phòng:", error);
+      console.error("Lỗi fetch room types:", error);
+    }
+  }, []);
+
+  // Thêm hoặc cập nhật phòng
+  const handleSaveRoom = async (roomData) => {
+    try {
+      await saveRoom(roomData);
+      toast.success("Lưu thông tin phòng thành công!");
+      await fetchRooms();
+      return true;
+    } catch (error) {
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Staff: Xóa phòng (Xóa mềm)
-  const deleteRoom = async (roomId) => {
-    setLoading(true);
+  // Xóa hoặc đổi trạng thái phòng
+  const handleDeleteRoom = async (roomId) => {
     try {
-      await roomService.deleteRoom(roomId);
-      toast.success("Xóa/Đổi trạng thái phòng thành công!");
-      // Cập nhật lại state cục bộ thay vì gọi API lại cho nhẹ web
-      setRooms((prevRooms) => prevRooms.filter((r) => r.roomId !== roomId));
+      await deleteRoom(roomId);
+      toast.success("Đã xử lý xóa phòng!");
+      await fetchRooms();
     } catch (error) {
-      console.error("Lỗi xóa phòng:", error);
-    } finally {
-      setLoading(false);
+      // Lỗi xử lý bởi interceptor
     }
   };
 
-  return { rooms, loading, fetchRooms, saveRoom, deleteRoom };
+  return {
+    rooms,
+    roomTypes, // Trả về danh sách loại phòng cho UI
+    loading,
+    fetchRooms,
+    fetchRoomTypes, // Trả về hàm fetch cho UI
+    handleSaveRoom,
+    handleDeleteRoom,
+  };
 };

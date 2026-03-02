@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Container, Table, Badge, Button, Modal } from "react-bootstrap";
 import { toast } from "react-toastify";
 import bookingService from "../../services/bookingService";
-import { formatCurrency } from "../../utils/formatCurrency"; //
-import { formatDate } from "../../utils/formatDate"; //
-import LoadingSpinner from "../../components/ui/LoadingSpinner"; //
+import { formatCurrency } from "../../utils/formatCurrency";
+import { formatDate } from "../../utils/formatDate";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { useBookings } from "../../hooks/useBookings";
 
 const ManageBookings = () => {
@@ -19,11 +19,11 @@ const ManageBookings = () => {
   const handleChangeStatus = async (id, status) => {
     if (!window.confirm("Xác nhận thực hiện thao tác này?")) return;
     try {
-      await bookingService.updateBookingStatus(id, status); // still using service
-      toast.success("Thành công");
+      await bookingService.updateBookingStatus(id, status);
+      toast.success("Cập nhật trạng thái thành công");
       fetchAllBookings();
     } catch (error) {
-      toast.error("Lỗi hệ thống");
+      toast.error("Lỗi hệ thống khi cập nhật trạng thái");
     }
   };
 
@@ -68,10 +68,14 @@ const ManageBookings = () => {
                 <td>
                   <strong>{b.customer?.customerFullName}</strong>
                   <br />
-                  <small>{b.customer?.emailAddress}</small>
+                  <small className="text-muted">
+                    {b.customer?.emailAddress}
+                  </small>
                 </td>
-                <td>{formatDate(b.bookingDate)}</td>
-                <td>{formatCurrency(b.totalPrice)}</td>
+                <td>{formatDateDisplay(b.bookingDate)}</td>
+                <td className="fw-bold text-primary">
+                  {formatCurrency(b.totalPrice)}
+                </td>
                 <td>
                   <Badge
                     bg={
@@ -104,7 +108,7 @@ const ManageBookings = () => {
                   {b.bookingStatus === 1 && (
                     <>
                       <Button
-                        variant="outline-primary"
+                        variant="success"
                         size="sm"
                         className="me-2"
                         onClick={() =>
@@ -114,7 +118,7 @@ const ManageBookings = () => {
                         Duyệt
                       </Button>
                       <Button
-                        variant="outline-danger"
+                        variant="danger"
                         size="sm"
                         onClick={() =>
                           handleChangeStatus(b.bookingReservationId, 3)
@@ -136,8 +140,14 @@ const ManageBookings = () => {
           )}
         </tbody>
       </Table>
-      {/* modal hiển thị chi tiết đơn */}
-      <Modal show={showDetail} onHide={() => setShowDetail(false)} size="lg">
+
+      {/* Modal hiển thị chi tiết đơn */}
+      <Modal
+        show={showDetail}
+        onHide={() => setShowDetail(false)}
+        size="lg"
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>
             Chi tiết đặt phòng #{selectedBooking?.bookingReservationId}
@@ -145,26 +155,36 @@ const ManageBookings = () => {
         </Modal.Header>
         <Modal.Body>
           {selectedBooking ? (
-            <Table striped bordered hover responsive>
-              <thead>
-                <tr>
-                  <th>Phòng ID</th>
-                  <th>Số phòng</th>
-                  <th>Ngày bắt đầu</th>
-                  <th>Ngày kết thúc</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedBooking.bookingDetails?.map((d, idx) => (
-                  <tr key={idx}>
-                    <td>{d.roomId}</td>
-                    <td>{d.roomInformation?.roomNumber || "-"}</td>
-                    <td>{formatDate(d.startDate)}</td>
-                    <td>{formatDate(d.endDate)}</td>
+            <>
+              <div className="mb-3">
+                <p>
+                  <strong>Khách hàng:</strong>{" "}
+                  {selectedBooking.customer?.customerFullName}
+                </p>
+                <p>
+                  <strong>Ngày đặt:</strong>{" "}
+                  {formatDateDisplay(selectedBooking.bookingDate)}
+                </p>
+              </div>
+              <Table striped bordered hover responsive>
+                <thead className="table-secondary">
+                  <tr>
+                    <th>Số phòng</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {selectedBooking.bookingDetails?.map((d, idx) => (
+                    <tr key={idx}>
+                      <td>{d.roomInformation?.roomNumber || d.roomId}</td>
+                      <td>{formatDateDisplay(d.startDate)}</td>
+                      <td>{formatDateDisplay(d.endDate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </>
           ) : (
             <p>Không có dữ liệu.</p>
           )}
