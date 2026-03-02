@@ -26,11 +26,11 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Tạo Token cho Customer hoặc Staff [cite: 44, 45]
+    // Tạo Token cho Customer hoặc Staff
     public String generateJwtToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role) // Lưu role để phân quyền Staff/Customer [cite: 48, 52]
+                .claim("role", role) // Lưu role để phân quyền Staff/Customer
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)

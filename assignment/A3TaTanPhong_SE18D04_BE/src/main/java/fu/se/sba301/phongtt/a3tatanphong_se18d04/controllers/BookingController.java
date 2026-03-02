@@ -15,7 +15,7 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
 
-    // Customer tạo đơn đặt phòng mới [cite: 54, 64]
+    // Customer tạo đơn đặt phòng mới
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
     public BookingReservation createBooking(@RequestBody BookingReservation booking) {
@@ -29,7 +29,7 @@ public class BookingController {
         return bookingService.getHistoryByCustomer(customerId);
     }
 
-    // Staff quản lý tất cả các đơn đặt phòng [cite: 51, 61]
+    // Staff quản lý tất cả các đơn đặt phòng
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public List<BookingReservation> getAllBookings() {

@@ -28,7 +28,7 @@ public class RoomController {
         return roomService.saveRoom(room);
     }
 
-    // Staff xóa phòng (Logic xóa mềm/cứng trong Service) [cite: 50, 60]
+    // Staff xóa phòng (Logic xóa mềm/cứng trong Service)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<?> deleteRoom(@PathVariable Integer id) {

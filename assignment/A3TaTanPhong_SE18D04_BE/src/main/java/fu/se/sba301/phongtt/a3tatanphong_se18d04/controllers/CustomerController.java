@@ -14,7 +14,7 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    // Staff xem danh sách khách hàng [cite: 49, 58, 59]
+    // Staff xem danh sách khách hàng
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public List<Customer> getAllCustomers() {

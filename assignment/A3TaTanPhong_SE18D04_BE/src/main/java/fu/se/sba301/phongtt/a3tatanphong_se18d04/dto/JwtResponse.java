@@ -9,5 +9,5 @@ public class JwtResponse {
     private String token;
     private String type = "Bearer";
     private String email;
-    private String role; // Để FE biết là Staff hay Customer mà hiển thị menu
+    private String role; // Để FE biuết là Staff hay Cstomer mà hiển thị menu
 }
