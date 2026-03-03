@@ -1,25 +1,14 @@
 import React, { useState } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
-import authService from "../../services/authService"; // [cite: 11]
+import useLoginLogic from "../../hooks/useLoginLogic";
 
 const LoginModal = ({ show, onHide }) => {
-  const [credentials, setCredentials] = useState({
-    memberID: "",
-    password: "",
-  });
-  const [error, setError] = useState("");
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      // Sử dụng service để đăng nhập và lưu token [cite: 19]
-      await authService.login(credentials.memberID, credentials.password);
+  const { credentials, setCredentials, error, handleLogin } = useLoginLogic(
+    () => {
       onHide();
       window.location.reload();
-    } catch (err) {
-      setError("Invalid Member ID or Password.");
-    }
-  };
+    },
+  );
 
   return (
     <Modal show={show} onHide={onHide} centered>
@@ -35,6 +24,7 @@ const LoginModal = ({ show, onHide }) => {
             <Form.Control
               type="text"
               required
+              value={credentials.memberID}
               onChange={(e) =>
                 setCredentials({ ...credentials, memberID: e.target.value })
               }
@@ -45,6 +35,7 @@ const LoginModal = ({ show, onHide }) => {
             <Form.Control
               type="password"
               required
+              value={credentials.password}
               onChange={(e) =>
                 setCredentials({ ...credentials, password: e.target.value })
               }

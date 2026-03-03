@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import carService from "../services/carService";
+import CarCard from "../components/cars/CarCard";
 
 const HomePage = () => {
   const [cars, setCars] = useState([]);
@@ -35,55 +36,7 @@ const HomePage = () => {
       <Row xs={1} md={2} lg={3} xl={4} className="g-4">
         {cars.map((car) => (
           <Col key={car.carID}>
-            <Card className="h-100 shadow-sm border-0 hover-shadow transition">
-              <Card.Img
-                variant="top"
-                src={`https://placehold.co/600x400?text=${car.carName}`}
-                alt={car.carName}
-                style={{ height: "180px", objectFit: "cover" }}
-              />
-
-              <Card.Body className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <Card.Title className="fs-5 fw-bold mb-0">
-                    {car.carName}
-                  </Card.Title>
-                  <Badge bg="info" pill>
-                    {car.countryName}
-                  </Badge>
-                </div>
-
-                <Card.Text className="text-muted small mb-3">
-                  ID: {car.carID} | Created:{" "}
-                  {new Date(car.createdAt).toLocaleDateString()}
-                </Card.Text>
-
-                <div className="mt-auto">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <span className="text-muted small d-block">Price</span>
-                      <span className="fs-5 fw-bold text-primary">
-                        ${car.unitPrice.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="text-end">
-                      <span className="text-muted small d-block">
-                        Inventory
-                      </span>
-                      <span
-                        className={
-                          car.unitsInStock < 10
-                            ? "text-danger fw-bold"
-                            : "text-success fw-bold"
-                        }
-                      >
-                        {car.unitsInStock} units
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
+            <CarCard car={car} maxWidth="100%" />
           </Col>
         ))}
       </Row>

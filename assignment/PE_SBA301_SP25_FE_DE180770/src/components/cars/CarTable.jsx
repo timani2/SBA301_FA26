@@ -1,97 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 // THÊM Row, Col vào import ở đây
 import { Table, Button, Modal, Form, Alert, Row, Col } from "react-bootstrap";
-import carService from "../../services/carService";
-import authService from "../../services/authService";
+import useCarTableLogic from "../../hooks/useCarTableLogic";
 
 const CarTable = () => {
-  const [cars, setCars] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const userRole = authService.getCurrentUserRole();
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editCarData, setEditCarData] = useState({
-    carID: null,
-    carName: "",
-    unitsInStock: 5,
-    unitPrice: 0,
-    country: { countryID: "" },
-  });
-  const [editError, setEditError] = useState("");
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteCarID, setDeleteCarID] = useState(null);
-  const [deleteCarName, setDeleteCarName] = useState("");
-  const [deleteError, setDeleteError] = useState("");
-
-  useEffect(() => {
-    fetchCars();
-    fetchCountries();
-  }, []);
-
-  const fetchCars = async () => {
-    try {
-      const res = await carService.getAllCars();
-      setCars(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchCountries = async () => {
-    try {
-      const res = await carService.getAllCountries();
-      const normalized = (res.data || []).map((c) => ({
-        ...c,
-        countryID: c.countryID != null ? String(c.countryID) : "",
-      }));
-      setCountries(normalized);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleEditClick = (car) => {
-    const rawCid =
-      car.countryID ?? (car.country && car.country.countryID) ?? "";
-    setEditCarData({
-      carID: car.carID,
-      carName: car.carName,
-      unitsInStock: car.unitsInStock,
-      unitPrice: car.unitPrice,
-      country: { countryID: String(rawCid) },
-    });
-    setEditError("");
-    setShowEditModal(true);
-  };
-
-  const handleEditSubmit = async () => {
-    if (editCarData.carName.length <= 10)
-      return setEditError("Car Name > 10 characters.");
-    try {
-      await carService.updateCar(editCarData.carID, editCarData);
-      setShowEditModal(false);
-      fetchCars();
-    } catch (err) {
-      setEditError("Update failed.");
-    }
-  };
-
-  const handleDeleteClick = (car) => {
-    setDeleteCarID(car.carID);
-    setDeleteCarName(car.carName);
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      await carService.deleteCar(deleteCarID);
-      setShowDeleteModal(false);
-      fetchCars();
-    } catch (err) {
-      setDeleteError("Delete failed.");
-    }
-  };
+  const {
+    cars,
+    countries,
+    userRole,
+    showEditModal,
+    editCarData,
+    setEditCarData,
+    editError,
+    handleEditClick,
+    handleEditSubmit,
+    showDeleteModal,
+    deleteCarName,
+    deleteError,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    closeEditModal,
+    closeDeleteModal,
+  } = useCarTableLogic();
 
   return (
     <>
@@ -147,12 +77,7 @@ const CarTable = () => {
       </Table>
 
       {/* MODAL EDIT - Đã có đủ Row/Col nên cần import ở trên */}
-      <Modal
-        show={showEditModal}
-        onHide={() => setShowEditModal(false)}
-        centered
-        size="lg"
-      >
+      <Modal show={showEditModal} onHide={closeEditModal} centered size="lg">
         <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>Update Vehicle Information</Modal.Title>
         </Modal.Header>
@@ -223,7 +148,7 @@ const CarTable = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+          <Button variant="secondary" onClick={closeEditModal}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleEditSubmit}>
@@ -233,11 +158,7 @@ const CarTable = () => {
       </Modal>
 
       {/* MODAL DELETE */}
-      <Modal
-        show={showDeleteModal}
-        onHide={() => setShowDeleteModal(false)}
-        centered
-      >
+      <Modal show={showDeleteModal} onHide={closeDeleteModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>
         </Modal.Header>
@@ -249,7 +170,7 @@ const CarTable = () => {
           {deleteError && <Alert variant="danger">{deleteError}</Alert>}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+          <Button variant="secondary" onClick={closeDeleteModal}>
             Cancel
           </Button>
           <Button variant="danger" onClick={handleDeleteConfirm}>

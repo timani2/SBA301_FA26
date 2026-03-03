@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Form,
   Button,
@@ -11,84 +11,21 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import carService from "../../services/carService";
+import useCarFormLogic from "../../hooks/useCarFormLogic";
+import CarCard from "./CarCard";
 
 const CarForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [countries, setCountries] = useState([]);
-  const [formData, setFormData] = useState({
-    carName: "",
-    unitsInStock: 5,
-    unitPrice: 0,
-    country: { countryID: "" },
-  });
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const res = await carService.getAllCountries();
-        setCountries(res.data);
-      } catch (err) {
-        console.error("Failed to load countries");
-      }
-    };
-    fetchCountries();
-
-    if (id) {
-      const fetchCar = async () => {
-        try {
-          const res = await carService.getCarById(id);
-          const data = res.data;
-          setFormData({
-            carName: data.carName,
-            unitsInStock: data.unitsInStock,
-            unitPrice: data.unitPrice,
-            country: { countryID: data.countryID },
-          });
-        } catch (err) {
-          setError("Cannot load car details.");
-        }
-      };
-      fetchCar();
-    }
-  }, [id]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (formData.carName.length <= 10)
-      return setError("Car Name must be more than 10 characters.");
-    if (formData.unitsInStock < 5 || formData.unitsInStock > 20)
-      return setError("Units In Stock must be between 5 and 20.");
-
-    try {
-      const dataToSend = {
-        ...formData,
-        unitsInStock: parseInt(formData.unitsInStock),
-        unitPrice: parseFloat(formData.unitPrice),
-      };
-
-      if (id) {
-        await carService.updateCar(id, dataToSend);
-      } else {
-        await carService.createCar(dataToSend);
-      }
-      navigate("/cars");
-    } catch (err) {
-      setError(
-        "Error saving car: " + (err.response?.data?.message || err.message),
-      );
-    }
-  };
-
-  // Tìm tên quốc gia để hiển thị trên Preview
-  const selectedCountryName = countries.find(
-    (c) => String(c.countryID) === String(formData.country.countryID),
-  )?.countryName;
+  const {
+    countries,
+    formData,
+    setFormData,
+    error,
+    handleSubmit,
+    selectedCountryName,
+  } = useCarFormLogic(id, navigate);
 
   return (
     <Container className="py-5">
@@ -206,66 +143,22 @@ const CarForm = () => {
           </Card>
         </Col>
 
-        {/* CỘT PHẢI: LIVE PREVIEW (KHỚP 100% VỚI HOME) */}
         <Col lg={5}>
           <div className="sticky-top" style={{ top: "100px" }}>
             <h5 className="text-muted mb-4 fw-bold">✨ Live Preview</h5>
 
-            {/* Card này được thiết kế y hệt Card ở HomePage */}
-            <Card
-              className="shadow-sm border-0 hover-shadow transition mx-auto"
-              style={{ maxWidth: "350px" }}
-            >
-              <Card.Img
-                variant="top"
-                src={`https://placehold.co/600x400?text=${formData.carName || "Preview Name"}`}
-                alt="Preview"
-                style={{ height: "200px", objectFit: "cover" }}
-              />
-
-              <Card.Body className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <Card.Title
-                    className="fs-5 fw-bold mb-0 text-truncate"
-                    style={{ maxWidth: "180px" }}
-                  >
-                    {formData.carName || "Vehicle Name"}
-                  </Card.Title>
-                  <Badge bg="info" pill>
-                    {selectedCountryName || "Origin"}
-                  </Badge>
-                </div>
-
-                <Card.Text className="text-muted small mb-3">
-                  ID: {id || "New"} | Created: {new Date().toLocaleDateString()}
-                </Card.Text>
-
-                <div className="mt-auto">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <span className="text-muted small d-block">Price</span>
-                      <span className="fs-5 fw-bold text-primary">
-                        ${Number(formData.unitPrice).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="text-end">
-                      <span className="text-muted small d-block">
-                        Inventory
-                      </span>
-                      <span
-                        className={
-                          formData.unitsInStock < 10
-                            ? "text-danger fw-bold"
-                            : "text-success fw-bold"
-                        }
-                      >
-                        {formData.unitsInStock} units
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
+            {/* Sử dụng CarCard để tái dùng UI giữa Home và Live Preview */}
+            {(() => {
+              const previewCar = {
+                carName: formData.carName || "Vehicle Name",
+                countryName: selectedCountryName || "Origin",
+                carID: id || "New",
+                createdAt: new Date(),
+                unitPrice: formData.unitPrice,
+                unitsInStock: formData.unitsInStock,
+              };
+              return <CarCard car={previewCar} />;
+            })()}
 
             <Alert
               variant="light"
