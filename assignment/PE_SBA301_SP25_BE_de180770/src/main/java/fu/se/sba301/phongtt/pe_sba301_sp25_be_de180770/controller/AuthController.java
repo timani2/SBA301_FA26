@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*") // Cho phép Frontend gọi API
 public class AuthController {
 
     @Autowired

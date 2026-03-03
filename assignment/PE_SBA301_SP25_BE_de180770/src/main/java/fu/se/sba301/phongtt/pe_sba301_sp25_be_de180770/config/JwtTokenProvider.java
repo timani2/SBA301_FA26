@@ -7,7 +7,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
     // Key bí mật (nên để dài và phức tạp)
-    private final String JWT_SECRET = "PE_SBA301_Spring2025_Secret_Key_PhongTT";
+    private final String JWT_SECRET = "YjY0ZjhjMjliYjA2NGE5MGExYTM3MmZkYmIyZDY3YzA0OGM1MGZlYmYyMGM1ZDI0M2UwYzVmZTllM2Y1MDVmYmY4N2Y2Y2M0YmQ0ZGUwZDMwYmI0ZDY3ZGNmYTM0NmY5ZDYwM2VkYzA4YjUyNmU5YmY0ZDE5ZTdkYjU===";
     private final long JWT_EXPIRATION = 86400000L; // 1 ngày
 
     // Tạo JWT từ thông tin Member

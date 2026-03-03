@@ -65,4 +65,37 @@ public class CarService {
         }
         carRepository.deleteById(id);
     }
+
+    // Lấy chi tiết xe theo ID để đổ dữ liệu vào Form Edit
+    public Cars getCarById(Integer id) {
+        return carRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Car not found with ID: " + id));
+    }
+
+    // Logic cập nhật thông tin xe
+    public Cars updateCar(Integer id, Cars carDetails) {
+        Cars car = getCarById(id);
+
+        // Áp dụng các ràng buộc tương tự như khi thêm mới
+        if (carDetails.getCarName() == null || carDetails.getUnitsInStock() == null) {
+            throw new RuntimeException("Required fields are missing.");
+        }
+
+        if (carDetails.getCarName().length() <= 10) {
+            throw new RuntimeException("CarName must be > 10 characters.");
+        }
+
+        if (carDetails.getUnitsInStock() < 5 || carDetails.getUnitsInStock() > 20) {
+            throw new RuntimeException("UnitsInStock must be 5-20.");
+        }
+
+        // Cập nhật thông tin
+        car.setCarName(carDetails.getCarName());
+        car.setUnitsInStock(carDetails.getUnitsInStock());
+        car.setUnitPrice(carDetails.getUnitPrice());
+        car.setCountry(carDetails.getCountry());
+        car.setUpdatedAt(new Date()); // Cập nhật ngày chỉnh sửa
+
+        return carRepository.save(car);
+    }
 }

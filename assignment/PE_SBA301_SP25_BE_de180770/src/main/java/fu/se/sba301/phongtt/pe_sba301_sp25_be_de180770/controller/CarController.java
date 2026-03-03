@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/cars")
-@CrossOrigin("*")
 public class CarController {
 
     @Autowired
@@ -43,6 +42,26 @@ public class CarController {
         try {
             carService.deleteCar(id);
             return ResponseEntity.ok("Car deleted successfully with ID: " + id);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCarById(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(carService.getCarById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('1')")
+    public ResponseEntity<?> updateCar(@PathVariable Integer id, @RequestBody Cars cars) {
+        try {
+            carService.updateCar(id,cars);
+            return ResponseEntity.ok("Car update successfully with ID: " + id);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

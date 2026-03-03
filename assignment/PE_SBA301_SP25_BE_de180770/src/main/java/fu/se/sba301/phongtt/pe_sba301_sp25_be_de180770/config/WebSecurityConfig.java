@@ -45,6 +45,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/cars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
 
+
                         // Task 2: Add & Delete car - Only Admin (Role 1)
                         .requestMatchers(HttpMethod.POST, "/api/cars/**").hasAuthority("1")
                         .requestMatchers(HttpMethod.DELETE, "/api/cars/**").hasAuthority("1")
@@ -54,7 +55,7 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-        // 3. Thêm Filter JWT trước Filter xác thực mặc định [cite: 19]
+        // 3. Thêm Filter JWT trước Filter xác thực mặc định
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
