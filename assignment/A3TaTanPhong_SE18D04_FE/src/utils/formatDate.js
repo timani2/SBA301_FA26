@@ -1,19 +1,29 @@
 /**
- * Định dạng ngày tháng hiển thị theo kiểu Việt Nam (DD/MM/YYYY) - Tên cũ
+ * Chuyển đổi dữ liệu từ Backend (Mảng [Y,M,D] hoặc Chuỗi ISO) thành đối tượng Date của JS
  */
-export const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? "N/A" : date.toLocaleDateString("vi-VN");
+export const parseDateFromBackend = (dateVal) => {
+  if (!dateVal) return null;
+
+  // Trường hợp Backend trả về mảng số từ LocalDate
+  if (Array.isArray(dateVal)) {
+    return new Date(dateVal[0], dateVal[1] - 1, dateVal[2]);
+  }
+
+  // Trường hợp trả về chuỗi yyyy-MM-dd
+  if (typeof dateVal === "string" && dateVal.length === 10) {
+    const [year, month, day] = dateVal.split("-");
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  const date = new Date(dateVal);
+  return isNaN(date.getTime()) ? null : date;
 };
 
 /**
- * Hàm hỗ trợ riêng cho ô input type="date" (YYYY-MM-DD)
+ * Chuyển đổi đối tượng Date thành chuỗi yyyy-MM-dd để gửi về Backend
  */
-export const formatDateForInput = (dateString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
+export const formatDateForBackend = (date) => {
+  if (!date || isNaN(date.getTime())) return null;
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -23,18 +33,10 @@ export const formatDateForInput = (dateString) => {
 };
 
 /**
- * Định dạng có cả giờ phút
+ * Định dạng hiển thị kiểu Việt Nam (dd/mm/yyyy) dùng cho các bảng danh sách
  */
-export const formatDateTimeDisplay = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "N/A";
-
-  return date.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+export const formatDate = (dateVal) => {
+  const date = parseDateFromBackend(dateVal);
+  if (!date) return "Chưa cập nhật";
+  return date.toLocaleDateString("vi-VN");
 };

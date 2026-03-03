@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+// Import các hàm tiện ích đã định nghĩa ở trên
+import {
+  parseDateFromBackend,
+  formatDateForBackend,
+} from "../../utils/formatDate";
 
 const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
   const [form, setForm] = useState({
@@ -7,7 +14,7 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
     customerFullName: "",
     emailAddress: "",
     telephone: "",
-    customerBirthday: "",
+    customerBirthday: null, // Sử dụng đối tượng Date cho DatePicker
     customerStatus: 1,
   });
 
@@ -18,9 +25,8 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
         customerFullName: initialData.customerFullName || "",
         emailAddress: initialData.emailAddress || "",
         telephone: initialData.telephone || "",
-        customerBirthday: initialData.customerBirthday
-          ? initialData.customerBirthday.substring(0, 10)
-          : "",
+        // Chuẩn hóa dữ liệu từ Backend thành Date object
+        customerBirthday: parseDateFromBackend(initialData.customerBirthday),
         customerStatus:
           initialData.customerStatus != null ? initialData.customerStatus : 1,
       });
@@ -30,7 +36,7 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
         customerFullName: "",
         emailAddress: "",
         telephone: "",
-        customerBirthday: "",
+        customerBirthday: null,
         customerStatus: 1,
       });
     }
@@ -46,8 +52,15 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Chuyển đổi Date object thành chuỗi yyyy-MM-dd trước khi gửi đi
+    const payload = {
+      ...form,
+      customerBirthday: formatDateForBackend(form.customerBirthday),
+    };
+
     if (onSave) {
-      const success = await onSave(form);
+      const success = await onSave(payload);
       if (success) {
         handleClose();
       }
@@ -73,6 +86,7 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
               onChange={handleChange}
             />
           </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
@@ -81,9 +95,10 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
               required
               value={form.emailAddress}
               onChange={handleChange}
-              disabled={!!form.customerId} // không cho sửa email khi edit
+              disabled={!!form.customerId}
             />
           </Form.Group>
+
           <Row className="mb-3">
             <Col>
               <Form.Group>
@@ -97,18 +112,28 @@ const CustomerModal = ({ show, handleClose, initialData, onSave }) => {
               </Form.Group>
             </Col>
             <Col>
-              <Form.Group>
+              <Form.Group className="d-flex flex-column">
                 <Form.Label>Ngày sinh</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="customerBirthday"
-                  value={form.customerBirthday}
-                  onChange={handleChange}
-                  max={new Date().toISOString().split("T")[0]}
+                <DatePicker
+                  selected={form.customerBirthday}
+                  onChange={(date) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      customerBirthday: date,
+                    }))
+                  }
+                  maxDate={new Date()} // Không cho chọn tương lai
+                  dateFormat="yyyy-MM-dd"
+                  className="form-control"
+                  placeholderText="Chọn ngày sinh"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
                 />
               </Form.Group>
             </Col>
           </Row>
+
           <Form.Check
             type="checkbox"
             label="Hoạt động"

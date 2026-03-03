@@ -1,5 +1,6 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +25,9 @@ public class Customer {
     @Email
     private String emailAddress;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate customerBirthday;
+
     private Integer customerStatus;
 
     @NotBlank

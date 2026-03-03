@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Container, Form, Button, Table } from "react-bootstrap";
+import { Container, Form, Button, Table, Row, Col } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useRooms } from "../../hooks/useRooms";
 import { useCustomers } from "../../hooks/useCustomers";
 import { useBookings } from "../../hooks/useBookings";
 import { AuthContext } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { formatDateForBackend } from "../../utils/formatDate";
 
 const CreateBooking = () => {
   const navigate = useNavigate();
@@ -22,8 +25,10 @@ const CreateBooking = () => {
   const { user } = useContext(AuthContext);
 
   const [selectedRoomIds, setSelectedRoomIds] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() + 1)),
+  );
   const [myId, setMyId] = useState(null);
 
   useEffect(() => {
@@ -38,7 +43,6 @@ const CreateBooking = () => {
     }
   }, [customers, user]);
 
-  // Khi link có tham số room, tự động check
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roomParam = params.get("room");
@@ -58,9 +62,7 @@ const CreateBooking = () => {
 
   const calculateTotal = () => {
     if (!startDate || !endDate) return 0;
-    const sd = new Date(startDate);
-    const ed = new Date(endDate);
-    const days = Math.ceil((ed - sd) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
     if (days <= 0) return 0;
     let sum = 0;
     rooms.forEach((r) => {
@@ -85,11 +87,15 @@ const CreateBooking = () => {
       toast.error("Vui lòng chọn ngày bắt đầu và kết thúc.");
       return;
     }
+    if (endDate <= startDate) {
+      toast.error("Ngày kết thúc phải sau ngày bắt đầu.");
+      return;
+    }
 
     const details = selectedRoomIds.map((roomId) => ({
       roomId,
-      startDate,
-      endDate,
+      startDate: formatDateForBackend(startDate),
+      endDate: formatDateForBackend(endDate),
     }));
 
     const bookingData = {
@@ -113,72 +119,115 @@ const CreateBooking = () => {
     <Container className="py-4">
       <h3 className="fw-bold mb-4">Đặt phòng trực tuyến</h3>
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="startDate">
-          <Form.Label>Ngày bắt đầu</Form.Label>
-          <Form.Control
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            required
-            min={new Date().toISOString().split("T")[0]}
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="endDate">
-          <Form.Label>Ngày kết thúc</Form.Label>
-          <Form.Control
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            required
-            min={startDate || new Date().toISOString().split("T")[0]}
-          />
-        </Form.Group>
+        <Row className="mb-4">
+          <Col md={6}>
+            <Form.Group controlId="startDate" className="d-flex flex-column">
+              <Form.Label className="fw-bold">Ngày bắt đầu</Form.Label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  if (date >= endDate) {
+                    const nextDay = new Date(date);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setEndDate(nextDay);
+                  }
+                }}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+                minDate={new Date()}
+                dateFormat="yyyy-MM-dd"
+                className="form-control"
+                placeholderText="Chọn ngày bắt đầu"
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group controlId="endDate" className="d-flex flex-column">
+              <Form.Label className="fw-bold">Ngày kết thúc</Form.Label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate}
+                dateFormat="yyyy-MM-dd"
+                className="form-control"
+                placeholderText="Chọn ngày kết thúc"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+
         <Table
           striped
           bordered
           hover
           responsive
-          className="align-middle shadow-sm"
+          className="align-middle shadow-sm mb-4"
         >
           <thead className="table-dark">
             <tr>
-              <th></th>
-              <th>ID</th>
+              <th className="text-center" style={{ width: "50px" }}>
+                Chọn
+              </th>
               <th>Số phòng</th>
               <th>Giá/ngày</th>
               <th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
-            {rooms.map((r) => (
-              <tr key={r.roomId}>
-                <td className="text-center">
-                  <Form.Check
-                    type="checkbox"
-                    checked={selectedRoomIds.includes(r.roomId)}
-                    onChange={() => handleToggleRoom(r.roomId)}
-                    disabled={r.roomStatus !== 1}
-                  />
+            {rooms.length > 0 ? (
+              rooms.map((r) => (
+                <tr key={r.roomId}>
+                  <td className="text-center">
+                    <Form.Check
+                      type="checkbox"
+                      checked={selectedRoomIds.includes(r.roomId)}
+                      onChange={() => handleToggleRoom(r.roomId)}
+                      disabled={r.roomStatus !== 1}
+                    />
+                  </td>
+                  <td>{r.roomNumber}</td>
+                  <td>{formatCurrency(r.roomPricePerDay)}</td>
+                  <td>
+                    {r.roomStatus === 1 ? (
+                      <span className="text-success fw-bold">Khả dụng</span>
+                    ) : (
+                      <span className="text-danger">Đã đặt/Bảo trì</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center py-3">
+                  Không có phòng khả dụng
                 </td>
-                <td>{r.roomId}</td>
-                <td>{r.roomNumber}</td>
-                <td>{formatCurrency(r.roomPricePerDay)}</td>
-                <td>{r.roomStatus === 1 ? "Khả dụng" : "Không"}</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </Table>
-        <div className="mb-3">
-          <strong>Tổng tiền dự tính: </strong>
-          {formatCurrency(calculateTotal())}
+
+        <div className="d-flex justify-content-between align-items-center p-3 bg-light rounded shadow-sm">
+          <div>
+            <span className="h5 mb-0">Tổng tiền dự tính: </span>
+            <span className="h4 mb-0 text-primary fw-bold">
+              {formatCurrency(calculateTotal())}
+            </span>
+          </div>
+          <Button
+            type="submit"
+            variant="success"
+            size="lg"
+            className="px-5 fw-bold"
+            disabled={selectedRoomIds.length === 0}
+          >
+            ĐẶT NGAY
+          </Button>
         </div>
-        <Button
-          type="submit"
-          variant="success"
-          disabled={selectedRoomIds.length === 0}
-        >
-          Đặt ngay
-        </Button>
       </Form>
     </Container>
   );
