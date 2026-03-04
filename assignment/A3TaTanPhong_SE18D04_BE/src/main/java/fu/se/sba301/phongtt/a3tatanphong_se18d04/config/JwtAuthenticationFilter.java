@@ -19,7 +19,6 @@ public class JwtAuthenticationFilter extends GenericFilter {
 
     private final JwtService jwtService;
     private final CustomerRepository customerRepository;
-
     @Override
     public void doFilter(ServletRequest request,
                          ServletResponse response,
@@ -37,21 +36,34 @@ public class JwtAuthenticationFilter extends GenericFilter {
 
         String token = authHeader.substring(7);
 
-        String email = jwtService.extractEmail(token);
-        String role = jwtService.extractRole(token);
+        try {
 
-        Customer customer = customerRepository.findByEmail(email)
-                .orElse(null);
+            if (token.isBlank()) {
+                chain.doFilter(request, response);
+                return;
+            }
 
-        if (customer != null) {
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority(role))
-                    );
+            String email = jwtService.extractEmail(token);
+            String role = jwtService.extractRole(token);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElse(null);
+
+            if (customer != null) {
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                email,
+                                null,
+                                List.of(new SimpleGrantedAuthority(role))
+                        );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+
+        } catch (Exception e) {
+            // Token sai format / hết hạn / signature sai
+            SecurityContextHolder.clearContext();
         }
 
         chain.doFilter(request, response);
