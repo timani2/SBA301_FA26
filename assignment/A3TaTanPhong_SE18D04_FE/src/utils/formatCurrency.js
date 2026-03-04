@@ -1,22 +1,22 @@
 /**
- * Hàm định dạng số tiền thành chuỗi tiền tệ VNĐ hoặc USD
- * @param {number} amount - Số tiền cần định dạng
- * @param {string} currency - 'VND' hoặc 'USD' (Mặc định là USD)
- * @returns {string} - Chuỗi đã định dạng
+ * Định dạng số thành chuỗi tiền tệ VND
+ * @param {number|string} amount - Giá trị số từ Backend (roomPricePerDay, actualPrice, ...)
+ * @returns {string} Chuỗi tiền tệ (ví dụ: 500.000 ₫)
  */
-export const formatCurrency = (amount, currency = "VND") => {
-  if (amount === null || amount === undefined) return "";
+export const formatCurrency = (amount) => {
+  // Xử lý các giá trị không hợp lệ
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return "0 ₫";
+  }
 
-  if (currency === "VND") {
+  try {
+    // Sử dụng thư viện Intl chuẩn của trình duyệt để định dạng theo locale VN
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(amount);
+  } catch (error) {
+    console.error("Lỗi định dạng tiền tệ:", error);
+    return amount + " VND";
   }
-
-  // Mặc định là USD theo form khách sạn quốc tế
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
 };

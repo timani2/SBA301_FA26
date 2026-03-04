@@ -1,96 +1,79 @@
-import React, { useEffect, useContext, useState } from "react";
-import { Container, Row, Col, Card, Badge, Button } from "react-bootstrap";
+import { Row, Col, Card, Badge, Container } from "react-bootstrap";
 import { useRooms } from "../../hooks/useRooms";
 import { formatCurrency } from "../../utils/formatCurrency";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
-import { useNavigate } from "react-router-dom";
-import BookingModal from "../../components/customer/BookingModal";
-import { AuthContext } from "../../contexts/AuthContext";
-import { toast } from "react-toastify";
 
 const Home = () => {
-  const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [modalShow, setModalShow] = useState(false);
-  const [modalRoomId, setModalRoomId] = useState(null);
+  // Lấy rooms và loading từ Hook.
+  // Hook useRooms đã tự động gọi API tải dữ liệu bên trong useEffect của nó.
+  const { rooms, loading } = useRooms();
 
-  // Lấy dữ liệu và hàm fetch từ hook
-  const { rooms, loading, fetchRooms } = useRooms();
-
-  // Tự động gọi API lấy danh sách phòng khi trang vừa load xong
-  useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
-
-  if (loading) return <LoadingSpinner text="Đang tải danh sách phòng..." />;
-
+  if (loading) return <LoadingSpinner />;
+  console.log("Dữ liệu phòng:", rooms);
   return (
-    <>
-      <Container className="py-5">
-        <h2 className="text-center mb-5 fw-bold">Danh Sách Phòng Khách Sạn</h2>
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {rooms && rooms.length > 0 ? (
-            rooms.map((room) => (
-              <Col key={room.roomId}>
-                <Card className="h-100 shadow-sm transition">
-                  <Card.Img
-                    variant="top"
-                    src={`https://placehold.co/600x400?text=Phòng+${room.roomNumber}`}
-                  />
-                  <Card.Body>
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <Card.Title className="mb-0 fs-4 fw-bold">
+    <Container>
+      <div className="text-center mb-5">
+        <h1 className="display-4 fw-bold">Chào mừng đến với Hotel Manager</h1>
+        <p className="lead text-muted">
+          Khám phá không gian nghỉ dưỡng sang trọng và tiện nghi
+        </p>
+      </div>
+
+      <h3 className="mb-4 border-bottom pb-2">Danh sách phòng trống</h3>
+
+      <Row>
+        {rooms && rooms.length > 0 ? (
+          rooms
+            .filter((room) => room.roomStatus === "ACTIVE") // Chỉ hiển thị phòng đang hoạt động
+            .map((room) => (
+              <Col key={room.id} md={6} lg={4} className="mb-4">
+                <Card className="h-100 shadow-sm hover-shadow transition">
+                  <Card.Body className="d-flex flex-column">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <Card.Title className="fs-4">
                         Phòng {room.roomNumber}
                       </Card.Title>
-                      <Badge bg={room.roomStatus === 1 ? "success" : "danger"}>
-                        {room.roomStatus === 1 ? "Khả dụng" : "Đang bảo trì"}
-                      </Badge>
+                      <Badge bg="success">Khả dụng</Badge>
                     </div>
-                    <Card.Text className="text-muted mb-3">
-                      {room.roomDetailDescription}
+
+                    <Card.Subtitle className="mb-3 text-primary fw-bold">
+                      {room.roomType?.roomTypeName || "N/A"}
+                    </Card.Subtitle>
+
+                    <Card.Text className="text-muted small mb-3">
+                      {room.roomDescription}
                     </Card.Text>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <span>
-                        <strong>Sức chứa:</strong> {room.roomMaxCapacity} người
-                      </span>
+
+                    <div className="border-top pt-3 mt-auto">
+                      <Row className="text-center small mb-3">
+                        <Col xs={6} className="border-end">
+                          <div className="text-muted">Người lớn</div>
+                          <div className="fw-bold">{room.roomMaxAdult}</div>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="text-muted">Trẻ em</div>
+                          <div className="fw-bold">{room.roomMaxChildren}</div>
+                        </Col>
+                      </Row>
+
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-muted small">Giá mỗi ngày:</span>
+                        <span className="fs-5 fw-bold text-danger">
+                          {formatCurrency(room.roomPricePerDay)}
+                        </span>
+                      </div>
                     </div>
-                    <h5 className="text-primary fw-bold mb-4">
-                      {formatCurrency(room.roomPricePerDay)} / ngày
-                    </h5>
-                    <Button
-                      variant="outline-primary"
-                      className="w-100"
-                      disabled={room.roomStatus === 0}
-                      onClick={() => {
-                        if (!user) {
-                          navigate("/login");
-                        } else if (user.role !== "ROLE_CUSTOMER") {
-                          toast.warning("Chỉ khách hàng mới có thể đặt phòng");
-                        } else {
-                          setModalRoomId(room.roomId);
-                          setModalShow(true);
-                        }
-                      }}
-                    >
-                      Đặt Phòng Ngay
-                    </Button>
                   </Card.Body>
                 </Card>
               </Col>
             ))
-          ) : (
-            <div className="text-center w-100 mt-4 text-muted">
-              Chưa có dữ liệu phòng nào trong hệ thống.
-            </div>
-          )}
-        </Row>
-      </Container>
-      <BookingModal
-        show={modalShow}
-        onHide={() => setModalShow(false)}
-        initialRoomId={modalRoomId}
-      />
-    </>
+        ) : (
+          <Col className="text-center py-5">
+            <p className="text-muted">Hiện tại không có phòng nào khả dụng.</p>
+          </Col>
+        )}
+      </Row>
+    </Container>
   );
 };
 

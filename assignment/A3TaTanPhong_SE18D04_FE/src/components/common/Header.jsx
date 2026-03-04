@@ -1,72 +1,61 @@
-import React, { useContext } from "react";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../contexts/AuthContext";
+import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { useAuth } from "../../hooks/useAuth";
 
 const Header = () => {
-  const { user, logoutContext } = useContext(AuthContext);
+  const { user, logout, isStaff, isCustomer } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logoutContext();
+    logout();
     navigate("/login");
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="mb-4 shadow">
+    <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
       <Container>
-        {/* Logo / Tên hệ thống */}
-        <Navbar.Brand
-          as={Link}
-          to={user?.role === "ROLE_STAFF" ? "/staff/rooms" : "/"}
-        >
-          FUMiniHotel
+        <Navbar.Brand as={Link} to="/">
+          Hotel Manager
         </Navbar.Brand>
-
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            {/* Menu Công khai */}
-            <Nav.Link as={Link} to="/rooms">
-              Danh sách phòng
+            <Nav.Link as={Link} to="/">
+              Trang chủ
             </Nav.Link>
 
-            {/* Menu cho STAFF */}
-            {user?.role === "ROLE_STAFF" && (
+            {/* Menu dành riêng cho STAFF */}
+            {isStaff && (
               <>
                 <Nav.Link as={Link} to="/staff/rooms">
-                  Quản lý Phòng
+                  Quản lý phòng
                 </Nav.Link>
                 <Nav.Link as={Link} to="/staff/customers">
-                  Quản lý Khách hàng
+                  Khách hàng
                 </Nav.Link>
                 <Nav.Link as={Link} to="/staff/bookings">
-                  Quản lý Đặt phòng
+                  Đơn đặt phòng
                 </Nav.Link>
               </>
             )}
 
-            {/* Menu cho CUSTOMER */}
-            {user?.role === "ROLE_CUSTOMER" && (
+            {/* Menu dành riêng cho CUSTOMER */}
+            {isCustomer && (
               <>
-                <Nav.Link as={Link} to="/customer/book">
-                  Đặt phòng
+                <Nav.Link as={Link} to="/customer/bookings">
+                  Lịch sử đặt
                 </Nav.Link>
                 <Nav.Link as={Link} to="/customer/profile">
-                  Hồ sơ của tôi
-                </Nav.Link>
-                <Nav.Link as={Link} to="/customer/history">
-                  Lịch sử đặt phòng
+                  Thông tin cá nhân
                 </Nav.Link>
               </>
             )}
           </Nav>
 
-          {/* Khu vực Đăng nhập / Đăng xuất */}
           <Nav>
             {user ? (
               <div className="d-flex align-items-center">
-                <span className="text-light me-3">Xin chào, {user.email}</span>
+                <span className="text-light me-3">Chào, {user.email}</span>
                 <Button
                   variant="outline-danger"
                   size="sm"

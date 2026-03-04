@@ -1,31 +1,33 @@
 import api from "./api";
 
-// Lấy danh sách tất cả các phòng (Dành cho cả User và Staff)
-export const getRooms = async () => {
-  const response = await api.get("/rooms");
-  return response.data;
-};
+export const roomService = {
+  // PUBLIC: Lấy toàn bộ danh sách phòng
+  getAllRooms: async () => {
+    const response = await api.get("/rooms");
+    return response.data;
+  },
 
-// Lấy danh sách các loại phòng (Dùng cho dropdown select khi Staff tạo/sửa phòng)
-export const getRoomTypes = async () => {
-  const response = await api.get("/room-types");
-  return response.data;
-};
+  // STAFF: Tạo phòng mới (RoomRequest)
+  createRoom: async (roomRequest) => {
+    const response = await api.post("/staff/rooms", roomRequest);
+    return response.data;
+  },
 
-// Lưu thông tin phòng (Thêm mới nếu không có ID, Cập nhật nếu đã có ID)
-export const saveRoom = async (roomData) => {
-  const response = await api.post("/rooms", roomData);
-  return response.data;
-};
+  // STAFF: Cập nhật phòng (RoomRequest)
+  updateRoom: async (id, roomRequest) => {
+    const response = await api.put(`/staff/rooms/${id}`, roomRequest);
+    return response.data;
+  },
 
-// Xóa hoặc thay đổi trạng thái phòng
-export const deleteRoom = async (roomId) => {
-  const response = await api.delete(`/rooms/${roomId}`);
-  return response.data;
-};
+  // STAFF: Xóa phòng
+  deleteRoom: async (id) => {
+    const response = await api.delete(`/staff/rooms/${id}`);
+    return response.data;
+  },
 
-// Lấy chi tiết một phòng cụ thể (Nếu cần dùng cho trang chi tiết)
-export const getRoomById = async (roomId) => {
-  const response = await api.get(`/rooms/${roomId}`);
-  return response.data;
+  // PUBLIC/STAFF: Lấy danh sách loại phòng (Nếu có RoomTypeController)
+  getRoomTypes: async () => {
+    const response = await api.get("/room-types");
+    return response.data;
+  },
 };

@@ -1,92 +1,88 @@
-import React, { useEffect, useContext, useState } from "react";
-import { Container, Table, Badge } from "react-bootstrap";
-import { AuthContext } from "../../contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { Table, Button, Badge } from "react-bootstrap";
 import { useBookings } from "../../hooks/useBookings";
-import { useCustomers } from "../../hooks/useCustomers";
 import { formatDate } from "../../utils/formatDate";
 import { formatCurrency } from "../../utils/formatCurrency";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import BookingModal from "../../components/customer/BookingModal";
 
 const BookingHistory = () => {
-  const { user } = useContext(AuthContext);
-  const { bookings, loading: loadingBookings, fetchMyHistory } = useBookings();
-  const {
-    customers,
-    loading: loadingCustomers,
-    fetchAllCustomers,
-  } = useCustomers();
+  const { bookings, loading, fetchMyHistory } = useBookings();
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const [myId, setMyId] = useState(null);
-
-  // 1. Lấy danh sách khách hàng để tìm ID của mình
   useEffect(() => {
-    fetchAllCustomers();
-  }, [fetchAllCustomers]);
+    fetchMyHistory();
+  }, [fetchMyHistory]);
 
-  // 2. Từ Email -> Suy ra ID -> Gọi API lấy lịch sử đặt phòng
-  useEffect(() => {
-    if (customers.length > 0 && user) {
-      const myInfo = customers.find((c) => c.emailAddress === user.email);
-      if (myInfo) {
-        setMyId(myInfo.customerId);
-        fetchMyHistory(myInfo.customerId);
-      }
-    }
-  }, [customers, user, fetchMyHistory]);
+  const handleViewDetail = (booking) => {
+    setSelectedBooking(booking);
+    setShowModal(true);
+  };
 
-  if ((loadingBookings || loadingCustomers) && bookings.length === 0) {
-    return <LoadingSpinner text="Đang tải lịch sử đặt phòng..." />;
-  }
+  if (loading) return <div>Đang tải lịch sử...</div>;
 
   return (
-    <Container className="py-4">
-      <h3 className="fw-bold mb-4">Lịch Sử Đặt Phòng</h3>
-
-      <Table
-        striped
-        bordered
-        hover
-        responsive
-        className="align-middle shadow-sm"
-      >
+    <div>
+      <h2 className="mb-4">Lịch sử đặt phòng</h2>
+      <Table striped bordered hover responsive>
         <thead className="table-dark">
           <tr>
-            <th>Mã Đơn</th>
-            <th>Ngày Đặt</th>
-            <th>Tổng Tiền</th>
-            <th>Trạng Thái</th>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Ngày đến</th>
+            <th>Ngày đi</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {bookings.length > 0 ? (
-            bookings.map((booking) => (
-              <tr key={booking.bookingReservationId}>
-                <td className="fw-bold text-primary">
-                  #{booking.bookingReservationId}
-                </td>
-                <td>{formatDate(booking.bookingDate)}</td>
-                <td className="text-danger fw-bold">
-                  {formatCurrency(booking.totalPrice)}
+            bookings.map((b) => (
+              <tr key={b.id}>
+                <td>#{b.id}</td>
+                <td>{formatDate(b.bookingDate)}</td>
+                <td>{formatDate(b.arrivalDate)}</td>
+                <td>{formatDate(b.departureDate)}</td>
+                <td className="fw-bold text-danger">
+                  {formatCurrency(b.bookingTotalPrice)}
                 </td>
                 <td>
                   <Badge
-                    bg={booking.bookingStatus === 1 ? "success" : "secondary"}
+                    bg={
+                      b.bookingStatus === "CONFIRMED" ? "success" : "secondary"
+                    }
                   >
-                    {booking.bookingStatus === 1 ? "Đã xác nhận" : "Đã hủy"}
+                    {b.bookingStatus}
                   </Badge>
+                </td>
+                <td>
+                  <Button
+                    variant="info"
+                    size="sm"
+                    onClick={() => handleViewDetail(b)}
+                  >
+                    Chi tiết
+                  </Button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center py-4 text-muted">
-                Bạn chưa có lịch sử đặt phòng nào.
+              <td colSpan="7" className="text-center">
+                Bạn chưa có đơn đặt phòng nào.
               </td>
             </tr>
           )}
         </tbody>
       </Table>
-    </Container>
+
+      <BookingModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        booking={selectedBooking}
+      />
+    </div>
   );
 };
 

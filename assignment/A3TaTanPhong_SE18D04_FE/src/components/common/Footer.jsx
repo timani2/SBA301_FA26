@@ -1,14 +1,15 @@
-import React from "react";
 import { Container } from "react-bootstrap";
 
 const Footer = () => {
   return (
-    <footer className="bg-light text-center py-4 mt-auto border-top">
-      <Container>
-        <p className="mb-0 text-muted">
-          &copy; {new Date().getFullYear()} FUMiniHotelSystem. Assignment 3 -
-          Lớp SE18D04.
+    <footer className="bg-dark text-light py-3 mt-auto">
+      <Container className="text-center">
+        <p className="mb-0">
+          © 2026 Hotel Management System - Ta Tan Phong SE18D04
         </p>
+        <small className="text-muted">
+          Hệ thống tích hợp Spring Boot & React
+        </small>
       </Container>
     </footer>
   );

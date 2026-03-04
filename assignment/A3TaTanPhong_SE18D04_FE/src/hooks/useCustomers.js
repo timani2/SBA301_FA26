@@ -1,44 +1,49 @@
 import { useState, useCallback } from "react";
-import { toast } from "react-toastify";
 import { customerService } from "../services/customerService";
+import { toast } from "react-toastify";
 
 export const useCustomers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Staff: Lấy danh sách toàn bộ khách hàng
   const fetchAllCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await customerService.getAllCustomers();
-      setCustomers(data);
+      const res = await customerService.getAllCustomers();
+      setCustomers(res.data || []);
     } catch (error) {
-      console.error("Lỗi tải danh sách khách hàng:", error);
+      console.error("Fetch customers error:", error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Customer/Staff: Cập nhật Profile
-  const updateProfile = async (id, customerData) => {
-    setLoading(true);
+  const deleteCustomer = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa khách hàng này?")) return;
     try {
-      await customerService.updateProfile(id, customerData);
-      toast.success("Cập nhật thông tin thành công!");
-
-      // Nếu là Staff đang sửa trong bảng Manage, update lại state cục bộ
-      setCustomers((prev) =>
-        prev.map((c) => (c.customerId === id ? { ...c, ...customerData } : c)),
-      );
-
-      return true;
+      const res = await customerService.deleteCustomer(id);
+      toast.success(res.message || "Xóa thành công");
+      fetchAllCustomers();
     } catch (error) {
-      console.error("Lỗi cập nhật thông tin:", error);
-      return false;
-    } finally {
-      setLoading(false);
+      // api.js đã handle toast lỗi
     }
   };
 
-  return { customers, loading, fetchAllCustomers, updateProfile };
+  const updateProfile = async (data) => {
+    try {
+      const res = await customerService.updateMyProfile(data);
+      toast.success(res.message || "Cập nhật thành công");
+      return res.data;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  return {
+    customers,
+    loading,
+    fetchAllCustomers,
+    deleteCustomer,
+    updateProfile,
+  };
 };

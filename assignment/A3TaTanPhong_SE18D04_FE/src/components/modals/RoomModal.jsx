@@ -1,152 +1,160 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 
-const RoomModal = ({
-  show,
-  handleClose,
-  initialData,
-  typeOptions = [],
-  onSave, // async function(data) => boolean
-}) => {
-  const [form, setForm] = useState({
-    roomId: null,
+const RoomModal = ({ show, onHide, onSubmit, initialData, roomTypes }) => {
+  const [formData, setFormData] = useState({
     roomNumber: "",
-    roomDetailDescription: "",
-    roomMaxCapacity: "",
-    roomPricePerDay: "",
-    roomStatus: 1,
-    roomTypeName: "",
+    roomDescription: "",
+    roomMaxAdult: 1,
+    roomMaxChildren: 0,
+    roomPricePerDay: 0,
+    roomTypeId: "",
+    roomStatus: "ACTIVE",
   });
 
   useEffect(() => {
     if (initialData) {
-      setForm({
-        roomId: initialData.roomId,
+      setFormData({
         roomNumber: initialData.roomNumber || "",
-        roomDetailDescription: initialData.roomDetailDescription || "",
-        roomMaxCapacity: initialData.roomMaxCapacity || "",
-        roomPricePerDay: initialData.roomPricePerDay || "",
-        roomStatus: initialData.roomStatus != null ? initialData.roomStatus : 1,
-        roomTypeName:
-          (initialData.roomType && initialData.roomType.roomTypeName) ||
-          initialData.roomTypeName ||
-          "",
+        roomDescription: initialData.roomDescription || "",
+        roomMaxAdult: initialData.roomMaxAdult || 1,
+        roomMaxChildren: initialData.roomMaxChildren || 0,
+        roomPricePerDay: initialData.roomPricePerDay || 0,
+        roomTypeId: initialData.roomType?.id || "",
+        roomStatus: initialData.roomStatus || "ACTIVE",
       });
     } else {
-      setForm({
-        roomId: null,
+      setFormData({
         roomNumber: "",
-        roomDetailDescription: "",
-        roomMaxCapacity: "",
-        roomPricePerDay: "",
-        roomStatus: 1,
-        roomTypeName: "",
+        roomDescription: "",
+        roomMaxAdult: 1,
+        roomMaxChildren: 0,
+        roomPricePerDay: 0,
+        roomTypeId: roomTypes[0]?.id || "",
+        roomStatus: "ACTIVE",
       });
     }
-  }, [initialData, show]);
+  }, [initialData, roomTypes, show]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
-    }));
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSave) {
-      const success = await onSave(form);
-      if (success) {
-        handleClose();
-      }
-    }
+    onSubmit(formData);
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+    <Modal show={show} onHide={onHide} size="lg">
       <Form onSubmit={handleSubmit}>
         <Modal.Header closeButton>
           <Modal.Title>
-            {form.roomId ? "Sửa phòng" : "Thêm phòng mới"}
+            {initialData ? "Cập nhật phòng" : "Thêm phòng mới"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Số phòng</Form.Label>
-            <Form.Control
-              type="text"
-              name="roomNumber"
-              required
-              value={form.roomNumber}
-              onChange={handleChange}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Loại phòng</Form.Label>
-            <Form.Select
-              name="roomTypeName"
-              value={form.roomTypeName}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Chọn loại --</option>
-              {typeOptions.map((t, idx) => (
-                <option key={idx} value={t}>
-                  {t}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-          <Row className="mb-3">
-            <Col>
-              <Form.Group>
-                <Form.Label>Sức chứa</Form.Label>
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Số phòng</Form.Label>
                 <Form.Control
-                  type="number"
-                  name="roomMaxCapacity"
-                  value={form.roomMaxCapacity}
+                  name="roomNumber"
+                  value={formData.roomNumber}
                   onChange={handleChange}
+                  required
                 />
               </Form.Group>
             </Col>
-            <Col>
-              <Form.Group>
-                <Form.Label>Giá / ngày</Form.Label>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Loại phòng</Form.Label>
+                <Form.Select
+                  name="roomTypeId"
+                  value={formData.roomTypeId}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">-- Chọn loại phòng --</option>
+                  {roomTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.roomTypeName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Mô tả phòng</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={2}
+              name="roomDescription"
+              value={formData.roomDescription}
+              onChange={handleChange}
+            />
+          </Form.Group>
+
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Người lớn (Tối đa)</Form.Label>
                 <Form.Control
                   type="number"
-                  step="0.01"
-                  name="roomPricePerDay"
-                  value={form.roomPricePerDay}
+                  name="roomMaxAdult"
+                  value={formData.roomMaxAdult}
                   onChange={handleChange}
+                  min="1"
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Trẻ em (Tối đa)</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="roomMaxChildren"
+                  value={formData.roomMaxChildren}
+                  onChange={handleChange}
+                  min="0"
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Giá/Ngày (VND)</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="roomPricePerDay"
+                  value={formData.roomPricePerDay}
+                  onChange={handleChange}
+                  min="0"
                 />
               </Form.Group>
             </Col>
           </Row>
+
           <Form.Group className="mb-3">
-            <Form.Label>Mô tả</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="roomDetailDescription"
-              value={form.roomDetailDescription}
+            <Form.Label>Trạng thái</Form.Label>
+            <Form.Select
+              name="roomStatus"
+              value={formData.roomStatus}
               onChange={handleChange}
-            />
+            >
+              <option value="ACTIVE">Hoạt động (Active)</option>
+              <option value="DELETED">Ngừng hoạt động (Deleted)</option>
+            </Form.Select>
           </Form.Group>
-          <Form.Check
-            type="checkbox"
-            label="Hoạt động"
-            name="roomStatus"
-            checked={form.roomStatus === 1}
-            onChange={handleChange}
-          />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={onHide}>
             Hủy
           </Button>
           <Button variant="primary" type="submit">
-            Lưu
+            Lưu lại
           </Button>
         </Modal.Footer>
       </Form>

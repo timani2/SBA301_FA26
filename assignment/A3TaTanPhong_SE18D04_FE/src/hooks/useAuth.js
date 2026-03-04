@@ -1,65 +1,38 @@
-import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { authService } from "../services/authService";
+import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 
+/**
+ * useAuth Hook giúp các Component lấy thông tin người dùng và quyền hạn
+ * một cách nhanh chóng mà không cần gọi useContext(AuthContext) ở mọi nơi.
+ */
 export const useAuth = () => {
-  const [loading, setLoading] = useState(false);
-  const { loginContext, logoutContext } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const context = useContext(AuthContext);
 
-  // Hàm xử lý Đăng nhập
-  const login = async (email, password) => {
-    if (!email || !password) {
-      toast.warning("Vui lòng nhập đầy đủ Email và Mật khẩu!");
-      return;
-    }
+  if (!context) {
+    throw new Error("useAuth phải được sử dụng bên trong AuthProvider");
+  }
 
-    setLoading(true);
-    try {
-      // Gọi tầng Service
-      const data = await authService.login(email, password);
+  const { user, login, logout, isStaff, isCustomer, loading } = context;
 
-      // data trả về từ BE là JwtResponse { token, email, role, type }
-      loginContext(data.token);
-      toast.success("Đăng nhập thành công!");
+  return {
+    // Thông tin người dùng hiện tại (token, role, email)
+    user,
 
-      // Điều hướng dựa trên phân quyền (Role)
-      if (data.role === "ROLE_STAFF") {
-        navigate("/staff/rooms"); // Staff vào trang quản lý
-      } else {
-        navigate("/rooms"); // Customer vào trang xem phòng
-      }
-    } catch (error) {
-      // Lỗi (như sai pass, 401) đã được api.js tự động bắt và hiện Toast.
-      // Ở đây không cần toast.error nữa.
-      console.error("Lỗi đăng nhập:", error);
-    } finally {
-      setLoading(false);
-    }
+    // Các hàm xử lý xác thực
+    login,
+    logout,
+
+    // Trạng thái chờ khi đang kiểm tra token ở localStorage
+    loading,
+
+    // Kiểm tra nhanh quyền hạn để hiển thị menu hoặc bảo vệ Route
+    isAdmin: isStaff(), // Trong một số phiên bản cũ bạn dùng isAdmin, có thể map sang isStaff
+    isStaff: isStaff(),
+    isCustomer: isCustomer(),
+
+    // Kiểm tra xem đã đăng nhập hay chưa
+    isAuthenticated: !!user && !!user.token,
   };
-
-  // Hàm xử lý Đăng ký (Dành cho Customer)
-  const register = async (customerData) => {
-    setLoading(true);
-    try {
-      await authService.register(customerData);
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      navigate("/login");
-    } catch (error) {
-      console.error("Lỗi đăng ký:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Hàm xử lý Đăng xuất
-  const logout = () => {
-    logoutContext();
-    toast.info("Bạn đã đăng xuất khỏi hệ thống.");
-    navigate("/login");
-  };
-
-  return { login, register, logout, loading };
 };
+
+export default useAuth;

@@ -1,70 +1,44 @@
-import { useState, useCallback } from "react";
-import {
-  getRooms,
-  saveRoom,
-  deleteRoom,
-  getRoomTypes,
-} from "../services/roomService";
-import { toast } from "react-toastify";
+import { useState, useEffect, useCallback } from "react";
+import { roomService } from "../services/roomService";
 
 export const useRooms = () => {
   const [rooms, setRooms] = useState([]);
-  const [roomTypes, setRoomTypes] = useState([]); // Trạng thái lưu danh sách loại phòng
+  const [roomTypes, setRoomTypes] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Lấy danh sách phòng
+  // SỬA TẠI ĐÂY: Dùng useCallback để giữ tham chiếu hàm ổn định
   const fetchRooms = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getRooms();
-      setRooms(data);
+      const res = await roomService.getAllRooms();
+      // Backend trả về ApiResponse { data: List<RoomResponse> }
+      setRooms(res.data || []);
     } catch (error) {
-      console.error("Lỗi fetch rooms:", error);
+      console.error("Lỗi khi tải danh sách phòng:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // Dependency array trống giúp hàm không bị tạo lại khi re-render
 
-  // Lấy danh sách loại phòng để Staff chọn
   const fetchRoomTypes = useCallback(async () => {
     try {
-      const data = await getRoomTypes();
-      setRoomTypes(data);
+      const res = await roomService.getRoomTypes();
+      setRoomTypes(res.data || []);
     } catch (error) {
-      console.error("Lỗi fetch room types:", error);
+      console.error("Lỗi khi tải loại phòng:", error);
     }
   }, []);
 
-  // Thêm hoặc cập nhật phòng
-  const handleSaveRoom = async (roomData) => {
-    try {
-      await saveRoom(roomData);
-      toast.success("Lưu thông tin phòng thành công!");
-      await fetchRooms();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  // Xóa hoặc đổi trạng thái phòng
-  const handleDeleteRoom = async (roomId) => {
-    try {
-      await deleteRoom(roomId);
-      toast.success("Đã xử lý xóa phòng!");
-      await fetchRooms();
-    } catch (error) {
-      // Lỗi xử lý bởi interceptor
-    }
-  };
+  // Tự động load dữ liệu lần đầu khi hook được sử dụng
+  useEffect(() => {
+    fetchRooms();
+    fetchRoomTypes();
+  }, [fetchRooms, fetchRoomTypes]); // Dependency ổn định nhờ useCallback
 
   return {
     rooms,
-    roomTypes, // Trả về danh sách loại phòng cho UI
+    roomTypes,
     loading,
-    fetchRooms,
-    fetchRoomTypes, // Trả về hàm fetch cho UI
-    handleSaveRoom,
-    handleDeleteRoom,
+    refreshRooms: fetchRooms,
   };
 };

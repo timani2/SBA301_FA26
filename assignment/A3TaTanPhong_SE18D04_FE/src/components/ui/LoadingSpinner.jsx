@@ -1,12 +1,29 @@
-import React from "react";
-import { Spinner } from "react-bootstrap";
+import { Spinner, Container } from "react-bootstrap";
 
-const LoadingSpinner = ({ text = "Đang xử lý..." }) => {
+/**
+ * Thành phần hiển thị biểu tượng đang tải (Loading)
+ * Được sử dụng trong các trang Home, ManageRooms, vv. khi đang chờ dữ liệu từ API.
+ */
+const LoadingSpinner = () => {
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center py-5">
-      <Spinner animation="border" variant="primary" role="status" />
-      <span className="mt-2 text-muted">{text}</span>
-    </div>
+    <Container
+      className="d-flex justify-content-center align-items-center"
+      style={{ minHeight: "200px" }}
+    >
+      <div className="text-center">
+        <Spinner
+          animation="border"
+          role="status"
+          variant="primary"
+          style={{ width: "3rem", height: "3rem" }}
+        >
+          <span className="visually-hidden">Đang tải dữ liệu...</span>
+        </Spinner>
+        <p className="mt-3 text-muted fw-bold">
+          Vui lòng đợi trong giây lát...
+        </p>
+      </div>
+    </Container>
   );
 };
 

@@ -1,42 +1,33 @@
 /**
- * Chuyển đổi dữ liệu từ Backend (Mảng [Y,M,D] hoặc Chuỗi ISO) thành đối tượng Date của JS
+ * Định dạng ngày tháng từ Backend sang định dạng hiển thị VN (DD/MM/YYYY)
+ * @param {string|Array} dateSource - Dữ liệu ngày từ Backend (ISO string hoặc Array [Y, M, D])
+ * @returns {string} Chuỗi ngày đã định dạng
  */
-export const parseDateFromBackend = (dateVal) => {
-  if (!dateVal) return null;
+export const formatDate = (dateSource) => {
+  if (!dateSource) return "---";
 
-  // Trường hợp Backend trả về mảng số từ LocalDate
-  if (Array.isArray(dateVal)) {
-    return new Date(dateVal[0], dateVal[1] - 1, dateVal[2]);
+  try {
+    // Trường hợp Backend trả về mảng số [year, month, day] từ LocalDate (Java)
+    if (Array.isArray(dateSource)) {
+      const [year, month, day] = dateSource;
+      const d = day.toString().padStart(2, "0");
+      const m = month.toString().padStart(2, "0");
+      return `${d}/${m}/${year}`;
+    }
+
+    // Trường hợp Backend trả về chuỗi ISO (ví dụ: "2026-03-05T00:00:00")
+    const date = new Date(dateSource);
+
+    // Kiểm tra tính hợp lệ của đối tượng Date
+    if (isNaN(date.getTime())) return "Ngày không hợp lệ";
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error("Lỗi định dạng ngày:", error);
+    return "Lỗi định dạng";
   }
-
-  // Trường hợp trả về chuỗi yyyy-MM-dd
-  if (typeof dateVal === "string" && dateVal.length === 10) {
-    const [year, month, day] = dateVal.split("-");
-    return new Date(Number(year), Number(month) - 1, Number(day));
-  }
-
-  const date = new Date(dateVal);
-  return isNaN(date.getTime()) ? null : date;
-};
-
-/**
- * Chuyển đổi đối tượng Date thành chuỗi yyyy-MM-dd để gửi về Backend
- */
-export const formatDateForBackend = (date) => {
-  if (!date || isNaN(date.getTime())) return null;
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
-
-/**
- * Định dạng hiển thị kiểu Việt Nam (dd/mm/yyyy) dùng cho các bảng danh sách
- */
-export const formatDate = (dateVal) => {
-  const date = parseDateFromBackend(dateVal);
-  if (!date) return "Chưa cập nhật";
-  return date.toLocaleDateString("vi-VN");
 };
