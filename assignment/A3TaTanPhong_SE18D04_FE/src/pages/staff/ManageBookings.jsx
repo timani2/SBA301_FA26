@@ -72,7 +72,7 @@ const ManageBookings = () => {
                     {b.customer?.emailAddress}
                   </small>
                 </td>
-                <td>{formatDateDisplay(b.bookingDate)}</td>
+                <td>{formatDate(b.bookingDate)}</td>
                 <td className="fw-bold text-primary">
                   {formatCurrency(b.totalPrice)}
                 </td>
@@ -163,7 +163,7 @@ const ManageBookings = () => {
                 </p>
                 <p>
                   <strong>Ngày đặt:</strong>{" "}
-                  {formatDateDisplay(selectedBooking.bookingDate)}
+                  {formatDate(selectedBooking.bookingDate)}
                 </p>
               </div>
               <Table striped bordered hover responsive>
@@ -178,8 +178,8 @@ const ManageBookings = () => {
                   {selectedBooking.bookingDetails?.map((d, idx) => (
                     <tr key={idx}>
                       <td>{d.roomInformation?.roomNumber || d.roomId}</td>
-                      <td>{formatDateDisplay(d.startDate)}</td>
-                      <td>{formatDateDisplay(d.endDate)}</td>
+                      <td>{formatDate(d.startDate)}</td>
+                      <td>{formatDate(d.endDate)}</td>
                     </tr>
                   ))}
                 </tbody>
