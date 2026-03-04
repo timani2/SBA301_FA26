@@ -6,19 +6,18 @@ export const useRooms = () => {
   const [roomTypes, setRoomTypes] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // SỬA TẠI ĐÂY: Dùng useCallback để giữ tham chiếu hàm ổn định
   const fetchRooms = useCallback(async () => {
     setLoading(true);
     try {
       const res = await roomService.getAllRooms();
-      // Backend trả về ApiResponse { data: List<RoomResponse> }
+      // Backend trả về { message: "...", data: [...] }
       setRooms(res.data || []);
     } catch (error) {
       console.error("Lỗi khi tải danh sách phòng:", error);
     } finally {
       setLoading(false);
     }
-  }, []); // Dependency array trống giúp hàm không bị tạo lại khi re-render
+  }, []);
 
   const fetchRoomTypes = useCallback(async () => {
     try {
@@ -29,16 +28,10 @@ export const useRooms = () => {
     }
   }, []);
 
-  // Tự động load dữ liệu lần đầu khi hook được sử dụng
   useEffect(() => {
     fetchRooms();
     fetchRoomTypes();
-  }, [fetchRooms, fetchRoomTypes]); // Dependency ổn định nhờ useCallback
+  }, [fetchRooms, fetchRoomTypes]);
 
-  return {
-    rooms,
-    roomTypes,
-    loading,
-    refreshRooms: fetchRooms,
-  };
+  return { rooms, roomTypes, loading, refreshRooms: fetchRooms };
 };

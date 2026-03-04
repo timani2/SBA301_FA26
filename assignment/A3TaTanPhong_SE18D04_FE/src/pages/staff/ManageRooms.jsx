@@ -1,97 +1,106 @@
-import { useState, useEffect } from "react";
-import { Table, Button, Badge } from "react-bootstrap";
+import { Container, Table, Button, Badge } from "react-bootstrap";
+import { useState } from "react";
 import { useRooms } from "../../hooks/useRooms";
 import { roomService } from "../../services/roomService";
-import { formatCurrency } from "../../utils/formatCurrency";
 import RoomModal from "../../components/modals/RoomModal";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { formatCurrency } from "../../utils/formatCurrency";
 import { toast } from "react-toastify";
 
 const ManageRooms = () => {
-  const { rooms, roomTypes, loading, refreshRooms, deleteRoom } = useRooms();
+  const { rooms, roomTypes, loading, refreshRooms } = useRooms();
   const [showModal, setShowModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
-  const handleShowAdd = () => {
-    setSelectedRoom(null);
-    setShowModal(true);
-  };
-
-  const handleShowEdit = (room) => {
-    setSelectedRoom(room);
-    setShowModal(true);
-  };
-
-  const handleSubmit = async (formData) => {
+  const handleSaveRoom = async (formData) => {
     try {
-      let response;
+      const roomRequest = {
+        roomNumber: formData.roomNumber,
+        roomTypeId: parseInt(formData.roomTypeId), // Khớp với Long roomTypeId ở BE
+      };
+
       if (selectedRoom) {
-        // Cập nhật: PUT /staff/rooms/{id}
-        response = await roomService.updateRoom(selectedRoom.id, formData);
+        await roomService.updateRoom(selectedRoom.roomId, roomRequest);
+        toast.success("Cập nhật phòng thành công!");
       } else {
-        // Thêm mới: POST /staff/rooms
-        response = await roomService.createRoom(formData);
+        await roomService.createRoom(roomRequest);
+        toast.success("Thêm phòng mới thành công!");
       }
-      toast.success(response.message || "Thao tác thành công");
       setShowModal(false);
       refreshRooms();
     } catch (error) {
-      console.error("Lưu phòng thất bại:", error);
+      console.error("Lỗi khi lưu phòng:", error);
     }
   };
 
-  if (loading) return <div>Đang tải dữ liệu phòng...</div>;
+  const handleDelete = async (roomId, roomNumber) => {
+    if (window.confirm(`Bạn có chắc muốn xóa phòng ${roomNumber}?`)) {
+      try {
+        await roomService.deleteRoom(roomId);
+        toast.success("Xóa thành công!");
+        refreshRooms();
+      } catch (error) {
+        console.error("Lỗi khi xóa:", error);
+      }
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
+    <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Quản lý phòng</h2>
-        <Button variant="success" onClick={handleShowAdd}>
-          + Thêm phòng mới
+        <h3>Quản lý danh sách phòng</h3>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setSelectedRoom(null);
+            setShowModal(true);
+          }}
+        >
+          Thêm phòng mới
         </Button>
       </div>
 
       <Table striped bordered hover responsive>
-        <thead className="table-dark">
+        <thead className="table-dark text-center">
           <tr>
             <th>Số phòng</th>
             <th>Loại phòng</th>
             <th>Giá/Ngày</th>
-            <th>Người lớn/Trẻ em</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          {rooms.map((room) => (
-            <tr key={room.id}>
+          {rooms?.map((room) => (
+            <tr key={room.roomId} className="text-center align-middle">
               <td>{room.roomNumber}</td>
-              <td>{room.roomType?.roomTypeName}</td>
-              <td className="text-danger fw-bold">
-                {formatCurrency(room.roomPricePerDay)}
+              <td>{room.roomTypeName}</td>
+              <td className="fw-bold text-danger">
+                {formatCurrency(room.price)}
               </td>
               <td>
-                {room.roomMaxAdult} / {room.roomMaxChildren}
-              </td>
-              <td>
-                <Badge
-                  bg={room.roomStatus === "ACTIVE" ? "success" : "secondary"}
-                >
-                  {room.roomStatus}
+                <Badge bg={room.status === "AVAILABLE" ? "success" : "danger"}>
+                  {room.status === "AVAILABLE" ? "Trống" : "Đã đặt"}
                 </Badge>
               </td>
               <td>
                 <Button
-                  variant="warning"
+                  variant="outline-primary"
                   size="sm"
                   className="me-2"
-                  onClick={() => handleShowEdit(room)}
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    setShowModal(true);
+                  }}
                 >
                   Sửa
                 </Button>
                 <Button
-                  variant="danger"
+                  variant="outline-danger"
                   size="sm"
-                  onClick={() => deleteRoom(room.id)}
+                  onClick={() => handleDelete(room.roomId, room.roomNumber)}
                 >
                   Xóa
                 </Button>
@@ -103,12 +112,12 @@ const ManageRooms = () => {
 
       <RoomModal
         show={showModal}
-        onHide={() => setShowModal(false)}
-        onSubmit={handleSubmit}
-        initialData={selectedRoom}
+        handleClose={() => setShowModal(false)}
+        handleSave={handleSaveRoom}
+        room={selectedRoom}
         roomTypes={roomTypes}
       />
-    </div>
+    </Container>
   );
 };
 
