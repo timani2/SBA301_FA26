@@ -1,35 +1,40 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.entity;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.*;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @Entity
-@Table(name = "Customer")
-@Data
+@Table(name = "customers")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Customer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer customerId;
+    private Long customerId;
 
-    @NotBlank
-    private String customerFullName;
+    @Column(nullable = false)
+    private String fullName;
 
-    private String telephone;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-    @Column(unique = true)
-    @Email
-    private String emailAddress;
-
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate customerBirthday;
-
-    private Integer customerStatus;
-
-    @NotBlank
+    @Column(nullable = false)
     private String password;
+
+    private String phone;
+
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @OneToMany(mappedBy = "customer")
+    private List<BookingReservation> bookings;
 }

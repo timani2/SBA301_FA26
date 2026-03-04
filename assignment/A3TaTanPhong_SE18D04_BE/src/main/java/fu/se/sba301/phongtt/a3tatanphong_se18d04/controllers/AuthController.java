@@ -1,67 +1,39 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
 
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.JwtResponse;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.LoginRequest;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.Customer;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.reposirories.CustomerRepository;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.util.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.LoginRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.RegisterRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.ApiResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.AuthResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtils jwtUtils;
-
-    @Value("${hotel.staff.email}")
-    private String staffEmail;
-
-    @Value("${hotel.staff.password}")
-    private String staffPassword;
-
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        // 1. Kiểm tra tài khoản Staff từ application.properties
-        if (staffEmail.equals(loginRequest.getEmail()) && staffPassword.equals(loginRequest.getPassword())) {
-            String jwt = jwtUtils.generateJwtToken(staffEmail, "ROLE_STAFF");
-            return ResponseEntity.ok(new JwtResponse(jwt, "Bearer", staffEmail, "ROLE_STAFF"));
-        }
-
-        // 2. Kiểm tra tài khoản Customer từ Database [cite: 44]
-        Optional<Customer> customerOpt = customerRepository.findByEmailAddress(loginRequest.getEmail());
-        if (customerOpt.isPresent()) {
-            Customer customer = customerOpt.get();
-            if (passwordEncoder.matches(loginRequest.getPassword(), customer.getPassword())) {
-                String jwt = jwtUtils.generateJwtToken(customer.getEmailAddress(), "ROLE_CUSTOMER");
-                return ResponseEntity.ok(new JwtResponse(jwt, "Bearer", customer.getEmailAddress(), "ROLE_CUSTOMER"));
-            }
-        }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai email hoặc mật khẩu");
-    }
+    private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerCustomer(@RequestBody Customer customer) {
-        if (customerRepository.existsByEmailAddress(customer.getEmailAddress())) {
-            return ResponseEntity.badRequest().body("Email đã tồn tại!");
-        }
-        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
-        customer.setCustomerStatus(1);
-        customerRepository.save(customer);
-        return ResponseEntity.ok("Đăng ký thành công!");
+    public ApiResponse<AuthResponse> register(
+            @Valid @RequestBody RegisterRequest request) {
+
+        return new ApiResponse<>(
+                "Register successfully",
+                authService.register(request)
+        );
+    }
+
+    @PostMapping("/login")
+    public ApiResponse<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        return new ApiResponse<>(
+                "Login successfully",
+                authService.login(request)
+        );
     }
 }

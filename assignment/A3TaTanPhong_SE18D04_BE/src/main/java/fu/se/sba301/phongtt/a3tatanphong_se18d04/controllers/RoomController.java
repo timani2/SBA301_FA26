@@ -1,38 +1,54 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
-
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.RoomInformation;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.RoomRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.ApiResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.RoomResponse;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.RoomService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequiredArgsConstructor
 public class RoomController {
-    @Autowired
-    private RoomService roomService;
 
-    // Xem danh sách phòng (Công khai - Không cần login)
-    @GetMapping
-    public List<RoomInformation> getAllRooms() {
-        return roomService.getAllRoomsForView();
+    private final RoomService roomService;
+
+    // PUBLIC
+    @GetMapping("/rooms")
+    public ApiResponse<List<RoomResponse>> getAll() {
+        return new ApiResponse<>(
+                "Get rooms successfully",
+                roomService.getAll()
+        );
     }
 
-    // Staff thêm mới hoặc cập nhật phòng
-    @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public RoomInformation saveRoom(@RequestBody RoomInformation room) {
-        return roomService.saveRoom(room);
+    // STAFF
+    @PostMapping("/staff/rooms")
+    public ApiResponse<RoomResponse> create(
+            @Valid @RequestBody RoomRequest request) {
+
+        return new ApiResponse<>(
+                "Create room successfully",
+                roomService.create(request)
+        );
     }
 
-    // Staff xóa phòng (Logic xóa mềm/cứng trong Service)
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public ResponseEntity<?> deleteRoom(@PathVariable Integer id) {
-        roomService.deleteRoom(id);
-        return ResponseEntity.ok("Xử lý xóa/đổi trạng thái phòng thành công.");
+    @PutMapping("/staff/rooms/{id}")
+    public ApiResponse<RoomResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody RoomRequest request) {
+
+        return new ApiResponse<>(
+                "Update room successfully",
+                roomService.update(id, request)
+        );
+    }
+
+    @DeleteMapping("/staff/rooms/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        roomService.delete(id);
+        return new ApiResponse<>("Delete successfully", null);
     }
 }

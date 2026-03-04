@@ -1,35 +1,27 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.config;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import java.util.Arrays;
 
 @Configuration
-@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final JwtAuthenticationFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 // Thêm cấu hình CORS tại đây
                 .cors(cors -> cors.configurationSource(request -> {
@@ -40,22 +32,34 @@ public class SecurityConfig {
                     config.setAllowCredentials(true);
                     return config;
                 }))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
-                        .requestMatchers("/api/room-types/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CUSTOMER")
-                        .requestMatchers(HttpMethod.GET, "/api/bookings/my-history/**").hasAuthority("ROLE_CUSTOMER")
-                        .requestMatchers(HttpMethod.GET, "/api/bookings").hasAuthority("ROLE_STAFF")
-                        .requestMatchers(HttpMethod.PUT, "/api/bookings/*/status").hasAuthority("ROLE_STAFF")
-                        .requestMatchers("/api/staff/**").hasAuthority("ROLE_STAFF")
-                        .requestMatchers("/api/customer/**").hasAuthority("ROLE_CUSTOMER")
-                        .anyRequest().authenticated()
-                );
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+
+                        // PUBLIC
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/rooms/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/room-types/**").permitAll()
+
+                        // STAFF
+                        .requestMatchers("/staff/**").hasRole("STAFF")
+
+                        // CUSTOMER
+                        .requestMatchers("/customer/**").hasRole("CUSTOMER")
+
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

@@ -1,42 +1,17 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.services;
 
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.RoomInformation;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.reposirories.BookingDetailRepository;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.reposirories.RoomRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.RoomRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.RoomResponse;
+
 import java.util.List;
 
-@Service
-public class RoomService {
-    @Autowired
-    private RoomRepository roomRepository;
+public interface RoomService {
 
-    @Autowired
-    private BookingDetailRepository bookingDetailRepository;
+    List<RoomResponse> getAll();
 
-    public List<RoomInformation> getAllRoomsForView() {
-        return roomRepository.findAll();
-    }
+    RoomResponse create(RoomRequest request);
 
-    public RoomInformation saveRoom(RoomInformation room) {
-        return roomRepository.save(room);
-    }
+    RoomResponse update(Long id, RoomRequest request);
 
-    public void deleteRoom(Integer roomId) {
-        RoomInformation room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
-
-        // Kiểm tra xem phòng có nằm trong bất kỳ giao dịch nào không
-        boolean hasBookingDetails = bookingDetailRepository.existsByRoomInformation_RoomId(roomId);
-
-        if (hasBookingDetails) {
-            // Nếu đã có giao dịch, chỉ thay đổi trạng thái sang 0 (Deleted/Inactive)
-            room.setRoomStatus(0);
-            roomRepository.save(room);
-        } else {
-            // Nếu chưa có giao dịch, xóa hoàn toàn khỏi DB
-            roomRepository.delete(room);
-        }
-    }
+    void delete(Long id);
 }

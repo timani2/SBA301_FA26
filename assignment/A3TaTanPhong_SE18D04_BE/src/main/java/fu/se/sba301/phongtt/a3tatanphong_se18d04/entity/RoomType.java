@@ -1,27 +1,28 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
+
 @Entity
-@Table(name = "RoomType")
-@Data
+@Table(name = "room_types")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoomType {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer roomTypeId;
+    private Long id;
 
-    @NotBlank
-    private String roomTypeName;
+    private String name;
+    private String description;
+    private Double price;
 
-    private String typeDescription;
-    private String typeNote;
-
-    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL)
-    @JsonIgnore
+    @OneToMany(mappedBy = "roomType")
     private List<RoomInformation> rooms;
 }

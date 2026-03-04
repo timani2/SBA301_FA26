@@ -1,45 +1,56 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
 
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.BookingReservation;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.BookingRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.ApiResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.BookingResponse;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.BookingService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/bookings")
+@RequiredArgsConstructor
 public class BookingController {
-    @Autowired
-    private BookingService bookingService;
 
-    // Customer tạo đơn đặt phòng mới
-    @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
-    public BookingReservation createBooking(@RequestBody BookingReservation booking) {
-        return bookingService.createBooking(booking);
+    private final BookingService bookingService;
+
+    // CUSTOMER - create booking
+    @PostMapping("/customer/bookings")
+    public ApiResponse<BookingResponse> createBooking(
+            Authentication authentication,
+            @Valid @RequestBody BookingRequest request) {
+
+        String email = authentication.getName();
+
+        return new ApiResponse<>(
+                "Booking created successfully",
+                bookingService.createBooking(email, request)
+        );
     }
 
-    // Customer xem lịch sử đặt phòng của mình
-    @GetMapping("/my-history/{customerId}")
-    @PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
-    public List<BookingReservation> getMyHistory(@PathVariable Integer customerId) {
-        return bookingService.getHistoryByCustomer(customerId);
+    // CUSTOMER - view own history
+    @GetMapping("/customer/bookings")
+    public ApiResponse<List<BookingResponse>> getMyBookings(
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return new ApiResponse<>(
+                "Get booking history successfully",
+                bookingService.getMyBookings(email)
+        );
     }
 
-    // Staff quản lý tất cả các đơn đặt phòng
-    @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public List<BookingReservation> getAllBookings() {
-        return bookingService.getAllBookings();
-    }
+    // STAFF - view all bookings
+    @GetMapping("/staff/bookings")
+    public ApiResponse<List<BookingResponse>> getAllBookings() {
 
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public ResponseEntity<?> updateBookingStatus(@PathVariable Integer id, @RequestParam Integer status) {
-        bookingService.updateStatus(id, status);
-        return ResponseEntity.ok("Cập nhật trạng thái thành công");
+        return new ApiResponse<>(
+                "Get all bookings successfully",
+                bookingService.getAllBookings()
+        );
     }
 }

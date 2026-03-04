@@ -1,29 +1,28 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.entity;
 import jakarta.persistence.*;
-import lombok.Data;
-
-import java.time.LocalDate;
+import lombok.*;
 
 @Entity
-@Table(name = "BookingDetail")
-@Data
-@IdClass(BookingDetailId.class)
+@Table(name = "booking_details")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BookingDetail {
-    @Id
-    private Integer bookingReservationId;
-    @Id
-    private Integer roomId;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long bookingDetailId;
 
     @ManyToOne
-    @MapsId("bookingReservationId")
-    @JoinColumn(name = "BookingReservationID")
-    private BookingReservation bookingReservation;
+    @JoinColumn(name = "booking_id", nullable = false)
+    private BookingReservation booking;
 
     @ManyToOne
-    @MapsId("roomId")
-    @JoinColumn(name = "RoomID")
-    private RoomInformation roomInformation;
+    @JoinColumn(name = "room_id", nullable = false)
+    private RoomInformation  room;
+
+    @Column(nullable = false)
+    private Double priceAtBooking;
 }

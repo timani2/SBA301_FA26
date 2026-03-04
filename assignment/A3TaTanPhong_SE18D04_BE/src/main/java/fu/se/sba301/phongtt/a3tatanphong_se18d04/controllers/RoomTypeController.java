@@ -1,23 +1,55 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
 
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.RoomType;
-import fu.se.sba301.phongtt.a3tatanphong_se18d04.reposirories.RoomTypeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.RoomTypeRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.ApiResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.RoomTypeResponse;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.RoomTypeService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/room-types")
+@RequiredArgsConstructor
 public class RoomTypeController {
 
-    @Autowired
-    private RoomTypeRepository roomTypeRepository;
+    private final RoomTypeService roomTypeService;
 
-    @GetMapping
-    public List<RoomType> getAllRoomTypes() {
-        return roomTypeRepository.findAll();
+    // PUBLIC
+    @GetMapping("/room-types")
+    public ApiResponse<List<RoomTypeResponse>> getAll() {
+        return new ApiResponse<>(
+                "Get room types successfully",
+                roomTypeService.getAll()
+        );
+    }
+
+    // STAFF
+    @PostMapping("/staff/room-types")
+    public ApiResponse<RoomTypeResponse> create(
+            @Valid @RequestBody RoomTypeRequest request) {
+
+        return new ApiResponse<>(
+                "Create room type successfully",
+                roomTypeService.create(request)
+        );
+    }
+
+    @PutMapping("/staff/room-types/{id}")
+    public ApiResponse<RoomTypeResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody RoomTypeRequest request) {
+
+        return new ApiResponse<>(
+                "Update room type successfully",
+                roomTypeService.update(id, request)
+        );
+    }
+
+    @DeleteMapping("/staff/room-types/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        roomTypeService.delete(id);
+        return new ApiResponse<>("Delete successfully", null);
     }
 }
