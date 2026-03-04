@@ -6,11 +6,11 @@ import { toast } from "react-toastify";
 
 const Register = () => {
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
     password: "",
-    customerName: "",
-    customerBirthday: "",
-    customerAddress: "",
+    phone: "",
+    address: "",
   });
   const navigate = useNavigate();
 
@@ -41,38 +41,23 @@ const Register = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Họ và tên</Form.Label>
                   <Form.Control
-                    name="customerName"
+                    name="fullName"
                     placeholder="Nguyễn Văn A"
                     onChange={handleChange}
                     required
                   />
                 </Form.Group>
 
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
-                      <Form.Control
-                        type="email"
-                        name="email"
-                        placeholder="example@gmail.com"
-                        onChange={handleChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Ngày sinh</Form.Label>
-                      <Form.Control
-                        type="date"
-                        name="customerBirthday"
-                        onChange={handleChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    placeholder="example@gmail.com"
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label>Mật khẩu</Form.Label>
@@ -85,12 +70,22 @@ const Register = () => {
                   />
                 </Form.Group>
 
+                <Form.Group className="mb-3">
+                  <Form.Label>Số điện thoại</Form.Label>
+                  <Form.Control
+                    type="tel"
+                    name="phone"
+                    placeholder="Nhập số điện thoại liên lạc"
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+
                 <Form.Group className="mb-4">
                   <Form.Label>Địa chỉ</Form.Label>
                   <Form.Control
                     as="textarea"
                     rows={2}
-                    name="customerAddress"
+                    name="address"
                     placeholder="Nhập địa chỉ liên lạc"
                     onChange={handleChange}
                   />

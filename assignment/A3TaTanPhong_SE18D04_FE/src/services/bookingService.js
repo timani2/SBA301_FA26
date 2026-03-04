@@ -18,4 +18,12 @@ export const bookingService = {
     const response = await api.get("/staff/bookings");
     return response.data;
   },
+
+  // STAFF: Cập nhật trạng thái đơn đặt phòng
+  updateBookingStatus: async (bookingId, status) => {
+    const response = await api.put(`/staff/bookings/${bookingId}/status`, {
+      status,
+    });
+    return response.data;
+  },
 };

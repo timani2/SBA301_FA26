@@ -12,16 +12,20 @@ const RoomModal = ({ show, handleClose, handleSave, room, roomTypes }) => {
   useEffect(() => {
     if (show) {
       if (room) {
+        const roomTypeId =
+          room.roomTypeId ??
+          roomTypes?.find((t) => t.typeName === room.roomTypeName)?.roomTypeId ??
+          "";
         setFormData({
           roomNumber: room.roomNumber || "",
-          roomTypeId: room.roomTypeId || "",
+          roomTypeId: String(roomTypeId),
           status: room.status || "AVAILABLE",
         });
       } else {
         setFormData({ roomNumber: "", roomTypeId: "", status: "AVAILABLE" });
       }
     }
-  }, [room, show]);
+  }, [room, roomTypes, show]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

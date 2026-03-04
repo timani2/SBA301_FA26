@@ -11,8 +11,9 @@ const CreateBooking = () => {
   const [selectedRooms, setSelectedRooms] = useState([]);
 
   const toggleRoomSelection = (room) => {
-    if (selectedRooms.find((r) => r.id === room.id)) {
-      setSelectedRooms(selectedRooms.filter((r) => r.id !== room.id));
+    const id = room.roomId ?? room.id;
+    if (selectedRooms.find((r) => (r.roomId ?? r.id) === id)) {
+      setSelectedRooms(selectedRooms.filter((r) => (r.roomId ?? r.id) !== id));
     } else {
       setSelectedRooms([...selectedRooms, room]);
     }
@@ -33,12 +34,14 @@ const CreateBooking = () => {
         <Col lg={8}>
           <Row>
             {rooms
-              .filter((r) => r.roomStatus === "ACTIVE")
+              .filter((r) => r.status === "AVAILABLE")
               .map((room) => (
-                <Col md={6} key={room.id} className="mb-3">
+                <Col md={6} key={room.roomId ?? room.id} className="mb-3">
                   <Card
                     className={
-                      selectedRooms.find((r) => r.id === room.id)
+                      selectedRooms.find(
+                        (r) => (r.roomId ?? r.id) === (room.roomId ?? room.id)
+                      )
                         ? "border-primary shadow"
                         : ""
                     }
@@ -46,22 +49,28 @@ const CreateBooking = () => {
                     <Card.Body>
                       <Card.Title>Phòng {room.roomNumber}</Card.Title>
                       <Card.Text className="text-muted small">
-                        {room.roomDescription}
+                        {room.roomTypeName ?? room.roomDescription ?? "—"}
                       </Card.Text>
                       <div className="d-flex justify-content-between align-items-center">
                         <span className="fw-bold text-danger">
-                          {formatCurrency(room.roomPricePerDay)}/ngày
+                          {formatCurrency(room.price ?? room.roomPricePerDay)}/ngày
                         </span>
                         <Button
                           variant={
-                            selectedRooms.find((r) => r.id === room.id)
+                            selectedRooms.find(
+                              (r) =>
+                                (r.roomId ?? r.id) === (room.roomId ?? room.id)
+                            )
                               ? "danger"
                               : "outline-primary"
                           }
                           size="sm"
                           onClick={() => toggleRoomSelection(room)}
                         >
-                          {selectedRooms.find((r) => r.id === room.id)
+                          {selectedRooms.find(
+                            (r) =>
+                              (r.roomId ?? r.id) === (room.roomId ?? room.id)
+                          )
                             ? "Bỏ chọn"
                             : "Chọn phòng"}
                         </Button>

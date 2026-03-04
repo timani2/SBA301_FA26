@@ -26,7 +26,6 @@ export const useAuth = () => {
     loading,
 
     // Kiểm tra nhanh quyền hạn để hiển thị menu hoặc bảo vệ Route
-    isAdmin: isStaff(), // Trong một số phiên bản cũ bạn dùng isAdmin, có thể map sang isStaff
     isStaff: isStaff(),
     isCustomer: isCustomer(),
 

@@ -77,7 +77,7 @@ function App() {
             <Route
               path="/customer/bookings"
               element={
-                <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                <ProtectedRoute allowedRoles={["ROLE_CUSTOMER"]}>
                   <BookingHistory />
                 </ProtectedRoute>
               }

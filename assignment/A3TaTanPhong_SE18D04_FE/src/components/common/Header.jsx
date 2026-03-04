@@ -42,6 +42,9 @@ const Header = () => {
             {/* Menu dành riêng cho CUSTOMER */}
             {isCustomer && (
               <>
+                <Nav.Link as={Link} to="/customer/create-booking">
+                  Đặt phòng
+                </Nav.Link>
                 <Nav.Link as={Link} to="/customer/bookings">
                   Lịch sử đặt
                 </Nav.Link>

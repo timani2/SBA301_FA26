@@ -3,24 +3,17 @@ import { Modal, Button, Form } from "react-bootstrap";
 
 const CustomerModal = ({ show, onHide, onSubmit, initialData }) => {
   const [formData, setFormData] = useState({
-    customerName: "",
-    customerBirthday: "",
-    customerAddress: "",
+    fullName: "",
+    phone: "",
+    address: "",
   });
 
   useEffect(() => {
     if (initialData) {
-      // Backend có thể trả về date dạng mảng hoặc string, cần xử lý để hiển thị trong input date
-      let birthday = initialData.customerBirthday;
-      if (Array.isArray(birthday)) {
-        const [y, m, d] = birthday;
-        birthday = `${y}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
-      }
-
       setFormData({
-        customerName: initialData.customerName || "",
-        customerBirthday: birthday || "",
-        customerAddress: initialData.customerAddress || "",
+        fullName: initialData.fullName || "",
+        phone: initialData.phone || "",
+        address: initialData.address || "",
       });
     }
   }, [initialData, show]);
@@ -44,21 +37,19 @@ const CustomerModal = ({ show, onHide, onSubmit, initialData }) => {
           <Form.Group className="mb-3">
             <Form.Label>Họ và tên</Form.Label>
             <Form.Control
-              name="customerName"
-              value={formData.customerName}
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Ngày sinh</Form.Label>
+            <Form.Label>Số điện thoại</Form.Label>
             <Form.Control
-              type="date"
-              name="customerBirthday"
-              value={formData.customerBirthday}
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
-              required
             />
           </Form.Group>
 
@@ -67,8 +58,8 @@ const CustomerModal = ({ show, onHide, onSubmit, initialData }) => {
             <Form.Control
               as="textarea"
               rows={2}
-              name="customerAddress"
-              value={formData.customerAddress}
+              name="address"
+              value={formData.address}
               onChange={handleChange}
             />
           </Form.Group>

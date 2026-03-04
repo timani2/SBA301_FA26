@@ -1,9 +1,12 @@
-import { Row, Col, Card, Badge, Container } from "react-bootstrap";
+import { Row, Col, Card, Badge, Container, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import { useRooms } from "../../hooks/useRooms";
+import { useAuth } from "../../hooks/useAuth";
 import { formatCurrency } from "../../utils/formatCurrency";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 
 const Home = () => {
+  const { isCustomer } = useAuth();
   const { rooms, loading } = useRooms();
 
   if (loading) return <LoadingSpinner />;
@@ -15,6 +18,16 @@ const Home = () => {
         <p className="lead text-muted">
           Khám phá không gian nghỉ dưỡng sang trọng
         </p>
+        {isCustomer && (
+          <Button
+            as={Link}
+            to="/customer/create-booking"
+            variant="primary"
+            size="lg"
+          >
+            Đặt phòng ngay
+          </Button>
+        )}
       </div>
 
       <h3 className="mb-4 border-bottom pb-2">Danh sách phòng</h3>

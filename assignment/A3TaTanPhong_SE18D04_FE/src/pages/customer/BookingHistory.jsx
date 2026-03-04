@@ -5,6 +5,14 @@ import { formatDate } from "../../utils/formatDate";
 import { formatCurrency } from "../../utils/formatCurrency";
 import BookingModal from "../../components/customer/BookingModal";
 
+const getNights = (checkIn, checkOut) => {
+  if (!checkIn || !checkOut) return 0;
+  const d1 = new Date(checkIn);
+  const d2 = new Date(checkOut);
+  const diff = d2.getTime() - d1.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
 const BookingHistory = () => {
   const { bookings, loading, fetchMyHistory } = useBookings();
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -29,8 +37,8 @@ const BookingHistory = () => {
           <tr>
             <th>Mã đơn</th>
             <th>Ngày đặt</th>
-            <th>Ngày đến</th>
-            <th>Ngày đi</th>
+            <th>Thời gian ở</th>
+            <th>Số đêm</th>
             <th>Tổng tiền</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
@@ -38,27 +46,38 @@ const BookingHistory = () => {
         </thead>
         <tbody>
           {bookings.length > 0 ? (
-            bookings.map((b) => (
-              <tr key={b.id}>
-                <td>#{b.id}</td>
+            bookings.map((b) => {
+              const nights = getNights(b.checkInDate, b.checkOutDate);
+              return (
+              <tr key={b.bookingId}>
+                <td>#{b.bookingId}</td>
                 <td>{formatDate(b.bookingDate)}</td>
-                <td>{formatDate(b.arrivalDate)}</td>
-                <td>{formatDate(b.departureDate)}</td>
+                <td>
+                  {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
+                </td>
+                <td className="text-center">
+                  <Badge bg="info">{nights} đêm</Badge>
+                </td>
                 <td className="fw-bold text-danger">
-                  {formatCurrency(b.bookingTotalPrice)}
+                  {formatCurrency(b.totalAmount)}
+                  {nights > 0 && (
+                    <span className="text-muted fw-normal small d-block">
+                      tổng {nights} đêm
+                    </span>
+                  )}
                 </td>
                 <td>
                   <Badge
                     bg={
-                      b.bookingStatus === "CONFIRMED" ? "success" : "secondary"
+                      b.status === "CONFIRMED" ? "success" : "secondary"
                     }
                   >
-                    {b.bookingStatus}
+                    {b.status}
                   </Badge>
                 </td>
                 <td>
                   <Button
-                    variant="info"
+                    variant="outline-info"
                     size="sm"
                     onClick={() => handleViewDetail(b)}
                   >
@@ -66,7 +85,8 @@ const BookingHistory = () => {
                   </Button>
                 </td>
               </tr>
-            ))
+            );
+            })
           ) : (
             <tr>
               <td colSpan="7" className="text-center">

@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   // Kiểm tra quyền (Role-based access)
   const isStaff = () => user?.role === "ROLE_STAFF";
-  const isCustomer = () => user?.role === "ROLE_STAFF";
+  const isCustomer = () => user?.role === "ROLE_CUSTOMER";
 
   return (
     <AuthContext.Provider

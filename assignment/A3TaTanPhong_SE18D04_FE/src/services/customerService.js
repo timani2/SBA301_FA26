@@ -19,7 +19,13 @@ export const customerService = {
     return response.data;
   },
 
-  // CUSTOMER: Cập nhật profile cá nhân (Sử dụng token để định danh)
+  // CUSTOMER: Lấy thông tin profile cá nhân
+  getMyProfile: async () => {
+    const response = await api.get("/customer/profile");
+    return response.data;
+  },
+
+  // CUSTOMER: Cập nhật profile cá nhân
   updateMyProfile: async (updateRequest) => {
     const response = await api.put("/customer/profile", updateRequest);
     return response.data;
