@@ -1,6 +1,7 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.controllers;
 
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.BookingRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.UpdateBookingStatusRequest;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.ApiResponse;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.BookingResponse;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.services.BookingService;
@@ -51,6 +52,18 @@ public class BookingController {
         return new ApiResponse<>(
                 "Get all bookings successfully",
                 bookingService.getAllBookings()
+        );
+    }
+
+    // STAFF - update booking status
+    @PutMapping("/staff/bookings/{id}/status")
+    public ApiResponse<BookingResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateBookingStatusRequest request) {
+
+        return new ApiResponse<>(
+                "Update status successfully",
+                bookingService.updateStatus(id, request)
         );
     }
 }

@@ -25,8 +25,13 @@ public class BookingMapper {
                         .map(BookingMapper::toDetailResponse)
                         .toList();
 
+        String customerFullName = booking.getCustomer() != null
+                ? booking.getCustomer().getFullName()
+                : null;
+
         return new BookingResponse(
                 booking.getBookingId(),
+                customerFullName,
                 booking.getBookingDate(),
                 booking.getCheckInDate(),
                 booking.getCheckOutDate(),

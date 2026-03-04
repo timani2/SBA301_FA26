@@ -16,4 +16,6 @@ public interface CustomerService {
     void delete(Long id);
 
     CustomerResponse updateByEmail(String email, UpdateCustomerRequest request);
+
+    CustomerResponse getByEmail(String email);
 }

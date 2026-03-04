@@ -65,4 +65,11 @@ public class CustomerServiceImpl implements CustomerService {
 
         return CustomerMapper.toResponse(customer);
     }
+
+    @Override
+    public CustomerResponse getByEmail(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.CUSTOMER_NOT_FOUND));
+        return CustomerMapper.toResponse(customer);
+    }
 }

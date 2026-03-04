@@ -42,6 +42,17 @@ public class CustomerController {
         return new ApiResponse<>("Delete successfully", null);
     }
 
+    // CUSTOMER - get own profile
+    @GetMapping("/customer/profile")
+    public ApiResponse<CustomerResponse> getMyProfile(
+            Authentication authentication) {
+        String email = authentication.getName();
+        return new ApiResponse<>(
+                "Get profile successfully",
+                customerService.getByEmail(email)
+        );
+    }
+
     // CUSTOMER - update own profile
     @PutMapping("/customer/profile")
     public ApiResponse<CustomerResponse> updateProfile(

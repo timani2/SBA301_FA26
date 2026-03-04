@@ -1,6 +1,7 @@
 package fu.se.sba301.phongtt.a3tatanphong_se18d04.services.impl;
 
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.BookingRequest;
+import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.request.UpdateBookingStatusRequest;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.dto.response.BookingResponse;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.BookingDetail;
 import fu.se.sba301.phongtt.a3tatanphong_se18d04.entity.BookingReservation;
@@ -88,5 +89,16 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .map(BookingMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public BookingResponse updateStatus(Long id, UpdateBookingStatusRequest request) {
+        BookingReservation booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        booking.setStatus(BookingStatus.valueOf(request.getStatus()));
+        bookingRepository.save(booking);
+
+        return BookingMapper.toResponse(booking);
     }
 }
